@@ -136,17 +136,19 @@ int findShortestDistancePrim(const std::vector<std::vector<std::pair<int, int>>>
 }
 
 // Function to print the constructed MST and calculate required properties
-void printMST(const std::vector<int>& parent, const Graph& graph, const std::vector<std::vector<std::pair<int, int>>>& adj) 
+void printMST(const std::vector<int>& parent, const Graph& graph) 
 {
     int weightMST = 0;
     int V = graph.V;
-
+    std::vector<std::vector<std::pair<int, int>>> adj(V); // Adjacency list for MST (for calculating distances)
     std::cout << "Edge \tWeight\n";
     for (int i = 1; i < V; i++) 
     {
         int u = parent[i];
         int v = i;
         int weight = graph.adjList[u][v]; // Access the weight of the edge from the original graph
+        adj[u].push_back({v, weight});
+        adj[v].push_back({u, weight}); // Add the edge to the adjacency list
         std::cout << u + 1 << " - " << v + 1 << " \t" << weight << "\n";
         weightMST += weight;
     }
@@ -175,23 +177,22 @@ void PrimMST::primFunction(Graph& graph)
 
     key[0] = 0; // Start with the first vertex
     parent[0] = -1; // The first node is always the root of the MST
-
-    std::vector<std::vector<std::pair<int, int>>> adj(V); // Adjacency list for MST (for calculating distances)
-
-    for (int count = 0; count < V - 1; count++) {
+    for (int count = 0; count < V - 1; count++) 
+    {
         int u = minKey(key, mstSet, V);
         mstSet[u] = true;
 
         // Update key and parent for adjacent vertices
         for (int v = 0; v < V; v++) {
-            if (graph.adjList[u][v] && !mstSet[v] && graph.adjList[u][v] < key[v]) {
-                parent[v] = u;
-                key[v] = graph.adjList[u][v];
-                adj[u].push_back({v, graph.adjList[u][v]});
-                adj[v].push_back({u, graph.adjList[u][v]}); // Add edge to adjacency list
+            // Check if there is an edge between u and v in the original graph, 
+            // if v is not in the MST, and if the weight is less than the current weight for v
+            if (graph.adjList[u][v] && !mstSet[v] && graph.adjList[u][v] < key[v]) 
+            {
+                parent[v] = u; // Update the parent of v to u
+                key[v] = graph.adjList[u][v]; // Update the weight of the edge to v
             }
         }
     }
 
-    printMST(parent, graph, adj);
+    printMST(parent, graph);
 }
