@@ -131,35 +131,37 @@ int findShortestDistance(const std::vector<std::vector<std::pair<int, int>>>& ad
 }
 
 // Function to print the MST and perform calculations
-void printKruskalMST(const std::vector<std::vector<int>>& result, int V) 
+
+std::string printKruskalMST(const std::vector<std::vector<int>>& result, int V) 
 {
     int weightMST = 0;
     std::vector<std::vector<std::pair<int, int>>> mstAdjList(V);
+    std::string message = "Following are the edges in the constructed MST:\n";
 
-    std::cout << "Following are the edges in the constructed MST:\n";
     for (const auto& edge : result) 
     {
-        std::cout << edge[0]+1 << " -- " << edge[1]+1 << " == " << edge[2] << "\n";
+        message += std::to_string(edge[0] + 1) + " -- " + std::to_string(edge[1] + 1) + " == " + std::to_string(edge[2]) + "\n";
         weightMST += edge[2];
 
         mstAdjList[edge[0]].push_back({edge[1], edge[2]});
         mstAdjList[edge[1]].push_back({edge[0], edge[2]});
     }
 
-    std::cout << "Total weight of the MST: " << weightMST << "\n";
+    message += "Total weight of the MST: " + std::to_string(weightMST) + "\n";
 
     int longestDistance = findLongestDistance(mstAdjList, V);
-    std::cout << "Longest distance between two vertices: " << longestDistance << "\n";
+    message += "Longest distance between two vertices: " + std::to_string(longestDistance) + "\n";
 
     double avgDistance = calculateAverageDistance(mstAdjList, V);
-    std::cout << "Average distance between two vertices: " << avgDistance << "\n";
+    message += "Average distance between two vertices: " + std::to_string(avgDistance) + "\n";
 
     int shortestDistance = findShortestDistance(mstAdjList, V);
-    std::cout << "Shortest distance between two vertices in the MST: " << shortestDistance << "\n";
-}
+    message += "Shortest distance between two vertices in the MST: " + std::to_string(shortestDistance) + "\n";
 
+    return message;
+}
 // Kruskal's algorithm for MST
-void KruskalMST::kruskalfunction(Graph& graph) 
+std::string KruskalMST::kruskalFunction(Graph& graph) 
 {
     int V = graph.V; 
     std::vector<std::vector<int>> edgeList;  // Store edges in {src, dest, weight} format
@@ -210,5 +212,5 @@ void KruskalMST::kruskalfunction(Graph& graph)
     }
 
     // Print MST and perform calculations
-    printKruskalMST(result, V);
+    return printKruskalMST(result, V);
 }

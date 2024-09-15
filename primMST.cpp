@@ -5,6 +5,8 @@
 #include <queue>
 #include "Graph.hpp"
 #include "primMST.hpp"
+#include <sys/socket.h>
+#include <sstream>
 
 #define INF INT_MAX
 
@@ -136,12 +138,13 @@ int findShortestDistancePrim(const std::vector<std::vector<std::pair<int, int>>>
 }
 
 // Function to print the constructed MST and calculate required properties
-void printMST(const std::vector<int>& parent, const Graph& graph) 
+std::string printMST(const std::vector<int>& parent, const Graph& graph) 
 {
+    std::string message = "";
     int weightMST = 0;
     int V = graph.V;
     std::vector<std::vector<std::pair<int, int>>> adj(V); // Adjacency list for MST (for calculating distances)
-    std::cout << "Edge \tWeight\n";
+    message += "Edge \tWeight\n";
     for (int i = 1; i < V; i++) 
     {
         int u = parent[i];
@@ -149,32 +152,36 @@ void printMST(const std::vector<int>& parent, const Graph& graph)
         int weight = graph.adjList[u][v]; // Access the weight of the edge from the original graph
         adj[u].push_back({v, weight});
         adj[v].push_back({u, weight}); // Add the edge to the adjacency list
-        std::cout << u + 1 << " - " << v + 1 << " \t" << weight << "\n";
+        message += std::to_string(u + 1) + " - " + std::to_string(v + 1) + " \t" + std::to_string(weight) + "\n";
         weightMST += weight;
     }
-    std::cout << "Total weight of the MST: " << weightMST << "\n";
+    message += "Total weight of the MST: " + std::to_string(weightMST) + "\n";
 
     // Longest distance
     int longestDistance = findLongestDistancePrim(adj, V);
-    std::cout << "Longest distance between two vertices in MST: " << longestDistance << "\n";
+    message += "Longest distance between two vertices in MST: " + std::to_string(longestDistance) + "\n";
 
     // Average distance between vertices in MST
     double avgDistance = calculateAverageDistancePrim(adj, V);
-    std::cout << "Average distance between two vertices in the MST: " << avgDistance << "\n";
+    message += "Average distance between two vertices in the MST: " + std::to_string(avgDistance) + "\n";
 
     // Shortest distance between two distinct vertices in the MST
     int shortestDistance = findShortestDistancePrim(adj, V);
-    std::cout << "Shortest distance between two vertices in the MST: " << shortestDistance << "\n";
+    message += "Shortest distance between two vertices in the MST: " + std::to_string(shortestDistance) + "\n";
+    return message;
 }
 
 // Prim's algorithm for constructing the MST
-void PrimMST::primFunction(Graph& graph) 
+std::string PrimMST::primFunction(Graph& graph) 
 {
     int V = graph.V;
+        if (V == 0) {
+        std::cerr << "Error: Graph is empty!" << std::endl;
+        return "sss";
+    }
     std::vector<int> parent(V);  // Array to store the constructed MST
     std::vector<int> key(V, INF); // Key values used to pick minimum weight edge
     std::vector<bool> mstSet(V, false); // To represent the set of vertices included in MST
-
     key[0] = 0; // Start with the first vertex
     parent[0] = -1; // The first node is always the root of the MST
     for (int count = 0; count < V - 1; count++) 
@@ -193,6 +200,5 @@ void PrimMST::primFunction(Graph& graph)
             }
         }
     }
-
-    printMST(parent, graph);
+    return printMST(parent, graph);
 }

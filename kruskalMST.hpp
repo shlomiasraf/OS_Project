@@ -7,7 +7,7 @@
 class KruskalMST 
 {
     public:
-        void kruskalfunction(Graph&);
+        std::string kruskalFunction(Graph&);
     
 };
 #endif

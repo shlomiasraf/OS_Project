@@ -14,6 +14,7 @@ class Graph
         void addEdge(int src, int dest, int weight);
         std::string serialize() const;  // Add serialize function
         static Graph deserialize(const std::string& data);  // For deserialization
+        void resize(int size);
 };
 
 #endif

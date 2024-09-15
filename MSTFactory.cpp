@@ -25,22 +25,24 @@
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 std::vector<std::vector<int>> adj;
-
-
-std::function<void(Graph&)> MSTFactory::getMSTAlgorithm(Command type) 
+Graph graph(0,0);
+void MSTFactory::getMSTAlgorithm(Command type ,int client_fd) 
 {
     PrimMST primInstance;
     KruskalMST kruskalInstance;
-
-    switch (type) 
-    {
+    std::string message;
+    switch (type) {
         case Command::Prim:
-            return [&primInstance](Graph& graph) { primInstance.primFunction(graph); };
+            message = primInstance.primFunction(graph);
+            break;
         case Command::Kruskal:
-            return [&kruskalInstance](Graph& graph) { kruskalInstance.kruskalfunction(graph); };
+            message = kruskalInstance.kruskalFunction(graph);  // Assuming similar function for Kruskal
+            break;
         default:
-            return nullptr;
+            message = "Invalid MST command.";
+            break;
     }
+    send(client_fd, message.c_str(), message.size(), 0);
 }
 
 Command getCommandFromString(const std::string& commandStr) 
@@ -50,49 +52,21 @@ Command getCommandFromString(const std::string& commandStr)
 
     if (lowerCommand == "newgraph\n") {
         return Command::Newgraph;
-    } else if (lowerCommand == "Prim\n") {
+    } else if (lowerCommand == "prim\n") {
         return Command::Prim;
-    } else if (lowerCommand == "Kruskal\n") {
+    } else if (lowerCommand == "kruskal\n") {
         return Command::Kruskal;
     } else if (lowerCommand == "newedge\n") {
         return Command::Newedge;
     } else if (lowerCommand == "removeedge\n") {
         return Command::Removeedge;
-    } else if (lowerCommand == "Exit\n") {
+    } else if (lowerCommand == "exit\n") {
         return Command::Exit;
     }
     else {
         return Command::Invalid;
     }
 }
-
-
-void DFS1(int v, std::vector<std::vector<int>>& adj, std::vector<bool>& visited, std::list<int>& List)
-{
-    visited[v] = true;
-    for (int i : adj[v])
-    {
-        if (!visited[i])
-        {
-            DFS1(i, adj, visited, List);
-        }
-    }
-    List.push_front(v);  // use list (deque) to store the finish time order
-}
-
-void DFS2(int v, std::vector<std::list<int>>& adj, std::vector<bool>& visited, std::vector<int>& component)
-{
-    visited[v] = true;
-    component.push_back(v);
-    for (int i : adj[v])
-    {
-        if (!visited[i])
-        {
-            DFS2(i, adj, visited, component);
-        }
-    }
-}
-
 
 void Newgraph(std::vector<std::vector<int>> &adj,int clientfd)
 {
@@ -105,8 +79,7 @@ void Newgraph(std::vector<std::vector<int>> &adj,int clientfd)
     message="Please enter the edges: \n";
     send(clientfd, message.c_str(), message.size(), 0);
     message.clear();
-
-    adj.resize(vertex, std::vector<int>(vertex, 0));  // Initialize with 0s
+    graph = Graph(vertex, edges);    
     for (int i = 0; i < edges; i++) 
     {
         int u, v, weight;
@@ -116,8 +89,7 @@ void Newgraph(std::vector<std::vector<int>> &adj,int clientfd)
             std::cout << "Please enter valid edges: " << std::endl;
             std::cin >> u >> v >> weight;
         }
-        adj[u-1][v-1] = weight;
-        adj[v-1][u-1] = weight; 
+        graph.addEdge(u-1,v-1,weight);
     }
     message="The graph has created!\n";
     send(clientfd, message.c_str(), message.size(), 0);
@@ -196,36 +168,37 @@ void * Command_Shift(void * client_socket){
         dup2(client_fd, STDIN_FILENO);  
         std::string input;
         Command command = Command::Invalid;
-        while (command != Command::Exit) {
-        
-        input=handle_recieve_data(client_fd);
-        command = getCommandFromString(input);
-
-        switch (command) 
+        while (command != Command::Exit) 
         {
-            case Command::Newgraph:
-                Newgraph(adj,client_fd);
-                break;
-            case Command::Prim:
-                MSTFactory::getMSTAlgorithm(command);
-                break;
-            case Command::Kruskal:
-                MSTFactory::getMSTAlgorithm(command);
-                break;
-            case Command::Newedge:
-                Newedge(adj,client_fd);
-                break;
+        
+            input=handle_recieve_data(client_fd);
+            command = getCommandFromString(input);
 
-            case Command::Removeedge:
-                Removeedge(adj,client_fd);
-                break;
+            switch (command) 
+            {
+                case Command::Newgraph:
+                    Newgraph(adj,client_fd);
+                    break;
+                case Command::Prim:
+                    MSTFactory::getMSTAlgorithm(command, client_fd);
+                    break;
+                case Command::Kruskal:
+                    MSTFactory::getMSTAlgorithm(command, client_fd);
+                    break;
+                case Command::Newedge:
+                    Newedge(adj,client_fd);
+                    break;
 
-            case Command::Invalid:
-                std::cout << "Invalid command!" << std::endl;
-                break;
+                case Command::Removeedge:
+                    Removeedge(adj,client_fd);
+                    break;
 
-            case Command::Exit:
-                break;
+                case Command::Invalid:
+                    std::cout << "Invalid command!" << std::endl;
+                    break;
+
+                case Command::Exit:
+                    break;
             
         }
     }      

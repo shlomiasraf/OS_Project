@@ -6,6 +6,6 @@
 class PrimMST 
 {
     public:
-        void primFunction(Graph& graph); 
+        std::string primFunction(Graph& graph); 
 };
 #endif

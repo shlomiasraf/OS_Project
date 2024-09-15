@@ -16,9 +16,8 @@ enum class Command
 };
 class MSTFactory 
 {
-public:
-    static std::function<void(Graph&)> 
-    getMSTAlgorithm(Command type);
+    public:
+        static void getMSTAlgorithm(Command type, int client_fd);
 };
 
 #endif
