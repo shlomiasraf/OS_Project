@@ -1,4 +1,3 @@
-// Graph.hpp
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
@@ -11,11 +10,10 @@ class Graph
         int V;  // Number of vertices
         int edges;
         std::vector<std::vector<int>> adjList;  // Adjacency matrix for the graph
-        Graph(int V,int edges);
+        Graph(int V, int edges);
         void addEdge(int src, int dest, int weight);
         std::string serialize() const;  // Add serialize function
         static Graph deserialize(const std::string& data);  // For deserialization
-
 };
 
 #endif

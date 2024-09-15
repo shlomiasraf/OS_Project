@@ -1,21 +1,32 @@
+# Compiler
 CC = g++
-CFLAGS = -Wall -g
 
-# List of source files
-CLIENT_SOURCES = client.cpp Graph.cpp
-SERVER_SOURCES = server.cpp Graph.cpp primMST.cpp kruskalMST.cpp MSTFactory.cpp
+# Compiler flags
+CFLAGS = -Wall 
 
-# Output executable names
-CLIENT_EXEC = client
-SERVER_EXEC = server
+# Source files
+SRCS = Graph.cpp primMST.cpp kruskalMST.cpp MSTFactory.cpp proactor.cpp
 
-all: $(CLIENT_EXEC) $(SERVER_EXEC)
+# Header files
+HEADERS = Graph.hpp primMST.hpp kruskalMST.hpp MSTFactory.hpp proactor.hpp
 
-$(CLIENT_EXEC): $(CLIENT_SOURCES)
-	$(CC) $(CFLAGS) -o $(CLIENT_EXEC) $(CLIENT_SOURCES)
+# Object files
+OBJS = $(SRCS:.cpp=.o)
 
-$(SERVER_EXEC): $(SERVER_SOURCES)
-	$(CC) $(CFLAGS) -o $(SERVER_EXEC) $(SERVER_SOURCES)
+# Output file
+OUTPUT = MSTFactory
 
+# Default target
+all: $(OUTPUT)
+
+# Link the object files to create the executable
+$(OUTPUT): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS)
+
+# Compile source files into object files
+%.o: %.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Clean up build files
 clean:
-	rm -f $(CLIENT_EXEC) $(SERVER_EXEC) *.o
+	rm -f $(OBJS) $(OUTPUT)
