@@ -9,7 +9,7 @@ enum class Command
     Newgraph,
     Prim,
     Kruskal,
-    Newedge,
+    Addedge,
     Removeedge,
     Exit,
     Invalid

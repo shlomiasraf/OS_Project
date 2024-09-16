@@ -24,7 +24,6 @@
 #include <functional>
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-std::vector<std::vector<int>> adj;
 Graph graph(0,0);
 void MSTFactory::getMSTAlgorithm(Command type ,int client_fd) 
 {
@@ -56,8 +55,8 @@ Command getCommandFromString(const std::string& commandStr)
         return Command::Prim;
     } else if (lowerCommand == "kruskal\n") {
         return Command::Kruskal;
-    } else if (lowerCommand == "newedge\n") {
-        return Command::Newedge;
+    } else if (lowerCommand == "addedge\n") {
+        return Command::Addedge;
     } else if (lowerCommand == "removeedge\n") {
         return Command::Removeedge;
     } else if (lowerCommand == "exit\n") {
@@ -68,7 +67,7 @@ Command getCommandFromString(const std::string& commandStr)
     }
 }
 
-void Newgraph(std::vector<std::vector<int>> &adj,int clientfd)
+void Newgraph(int clientfd)
 {
     int vertex,edges;
     std::string message;
@@ -97,50 +96,24 @@ void Newgraph(std::vector<std::vector<int>> &adj,int clientfd)
     return;
 }
 
-void Newedge(std::vector<std::vector<int>> &adj,int clientfd){
-
-    int i,j;
+void Addedge(int clientfd)
+{
+    int u, v, weight;
     std::string message="Please enter edge you wish to add\n";
     send(clientfd, message.c_str(), message.size(), 0);
     message.clear();
-    //std::cout<<"Please enter edge you wish to add\n";
-    std::cin>>i;
-    std::cin>>j;
-    adj[i].push_back(j);
+    std::cin >> u >> v >> weight;
+    graph.addEdge(u-1,v-1,weight);
 }
 
-void Removeedge(std::vector<std::vector<int>> &adj,int clientfd){
+void RemoveEdge(int clientfd)
+{
     int i, j;
     std::string message="Enter edge to remove (i j): ";
     send(clientfd, message.c_str(), message.size(), 0);
     message.clear();
     std::cin >> i >> j;
-
-    // Check if vertex i exists in the adjacency list and if j is in its list
-    if (i >= 0 && (long unsigned int)i < adj.size() && j >= 0 && (long unsigned int)j < adj.size()) {
-        bool found = false;
-
-        // Traverse the list at index i to find and remove vertex j
-        for (auto it = adj[i].begin(); it != adj[i].end(); ++it) {
-            if (*it == j) {
-                adj[i].erase(it);
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            message = "Edge: (" +std::to_string(i) + " , "+ std::to_string(j) + " ) removed.\n";
-            send(clientfd, message.c_str(), message.size(), 0);
-            //std::to_string(i) ;  std::to_string(j)
-        } else {
-           message= "Edge: (" +std::to_string(i) + " , "+ std::to_string(j) + " ) not found.\n";
-            send(clientfd, message.c_str(), message.size(), 0);
-        }
-    } else {
-         message= "Invalid vertices!\n" ;
-         send(clientfd, message.c_str(), message.size(), 0);
-    }
+    graph.removeEdge(i-1,j-1);
 }
 
 std::string handle_recieve_data(int client_fd){
@@ -161,8 +134,8 @@ std::string handle_recieve_data(int client_fd){
         return input;
 }
 
-void * Command_Shift(void * client_socket){
-
+void * Command_Shift(void * client_socket)
+{
         pthread_mutex_lock(&mutex);
         int client_fd=  *(int*)client_socket;
         dup2(client_fd, STDIN_FILENO);  
@@ -177,7 +150,7 @@ void * Command_Shift(void * client_socket){
             switch (command) 
             {
                 case Command::Newgraph:
-                    Newgraph(adj,client_fd);
+                    Newgraph(client_fd);
                     break;
                 case Command::Prim:
                     MSTFactory::getMSTAlgorithm(command, client_fd);
@@ -185,12 +158,12 @@ void * Command_Shift(void * client_socket){
                 case Command::Kruskal:
                     MSTFactory::getMSTAlgorithm(command, client_fd);
                     break;
-                case Command::Newedge:
-                    Newedge(adj,client_fd);
+                case Command::Addedge:
+                    Addedge(client_fd);
                     break;
 
                 case Command::Removeedge:
-                    Removeedge(adj,client_fd);
+                    RemoveEdge(client_fd);
                     break;
 
                 case Command::Invalid:

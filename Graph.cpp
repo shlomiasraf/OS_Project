@@ -12,8 +12,16 @@ void Graph::addEdge(int src, int dest, int weight)
 {
     adjList[src][dest] = weight;
     adjList[dest][src] = weight;  // For undirected graph
+    edges++;
 }
-
+// Remove an edge from the graph
+void Graph::removeEdge(int src, int dest) 
+{
+    // Set the edge weights between src and dest to 0
+    adjList[src][dest] = 0;
+    adjList[dest][src] = 0;  // For undirected graph
+    edges--;
+}
 // Serialize the graph data into a string
 std::string Graph::serialize() const 
 {
