@@ -1,11 +1,13 @@
+
 #ifndef MSTFACTORY_HPP
 #define MSTFACTORY_HPP
 
-#include <functional>
 #include "Graph.hpp"
+#include "primMST.hpp"
+#include "kruskalMST.hpp"
+#include <string>
 
-enum class Command
-{
+enum class Command {
     Newgraph,
     Prim,
     Kruskal,
@@ -14,10 +16,11 @@ enum class Command
     Exit,
     Invalid
 };
-class MSTFactory 
-{
-    public:
-        static void getMSTAlgorithm(Command type, int client_fd);
+
+class MSTFactory {
+public:
+    static void getMSTAlgorithm(Command type, int client_fd);
 };
 
 #endif
+
