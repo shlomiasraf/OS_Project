@@ -19,6 +19,7 @@
 #include <queue>
 #include <condition_variable>
 #include <thread>
+#include <cctype>
 #include "MSTFactory.hpp"
 #include "primMST.hpp"
 #include "kruskalMST.hpp"
@@ -34,7 +35,8 @@ Graph graph(0, 0);
 
 class CommandProcessor {
 public:
-    CommandProcessor() : stop(false) {
+    CommandProcessor(std::shared_ptr<CommandProcessor> nextStage = nullptr)
+        : stop(false), nextStage(nextStage) {
         worker = std::thread([this]() { this->processCommands(); });
     }
 
@@ -53,6 +55,14 @@ public:
         cond_var.notify_one();
     }
 
+    void passToNextStage(const std::function<void()>& command) {
+        if (nextStage) {
+            nextStage->submitCommand(command);
+        } else {
+            command(); // Execute if no next stage
+        }
+    }
+
 private:
     void processCommands() {
         while (true) {
@@ -64,7 +74,7 @@ private:
                 command = commandQueue.front();
                 commandQueue.pop();
             }
-            command();
+            passToNextStage(command);
         }
     }
 
@@ -73,30 +83,43 @@ private:
     std::condition_variable cond_var;
     std::thread worker;
     bool stop;
+    std::shared_ptr<CommandProcessor> nextStage;
 };
+
+// Define the stages in the pipeline
+std::shared_ptr<CommandProcessor> mstComputationStage = std::make_shared<CommandProcessor>();
+std::shared_ptr<CommandProcessor> graphProcessingStage = std::make_shared<CommandProcessor>(mstComputationStage);
+std::shared_ptr<CommandProcessor> commandParsingStage = std::make_shared<CommandProcessor>(graphProcessingStage);
+
 
 // Active Object for handling client commands asynchronously
 CommandProcessor commandProcessor;
 
 Command getCommandFromString(const std::string& commandStr) {
     std::string lowerCommand = commandStr;
+    // Remove trailing newline character
+    if (!lowerCommand.empty() && lowerCommand.back() == '\n') {
+        lowerCommand.pop_back();
+    }
+
     std::transform(lowerCommand.begin(), lowerCommand.end(), lowerCommand.begin(), ::tolower);
 
-    if (lowerCommand == "newgraph\n") {
+    if (lowerCommand == "newgraph") {
         return Command::Newgraph;
-    } else if (lowerCommand == "prim\n") {
+    } else if (lowerCommand == "prim") {
         return Command::Prim;
-    } else if (lowerCommand == "kruskal\n") {
+    } else if (lowerCommand == "kruskal") {
         return Command::Kruskal;
-    } else if (lowerCommand == "addedge\n") {
+    } else if (lowerCommand == "addedge") {
         return Command::Addedge;
-    } else if (lowerCommand == "removeedge\n") {
+    } else if (lowerCommand == "removeedge") {
         return Command::Removeedge;
-    } else if (lowerCommand == "exit\n") {
+    } else if (lowerCommand == "exit") {
         return Command::Exit;
     }
     return Command::Invalid;
 }
+
 
 void Newgraph(int clientfd) {
     int vertex, edges;
@@ -105,7 +128,6 @@ void Newgraph(int clientfd) {
     // Request for the number of vertices and edges
     message = "Please enter the number of vertices and edges: \n";
     send(clientfd, message.c_str(), message.size(), 0);
-    message.clear();
     
     char buf[256];
     int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
@@ -124,16 +146,23 @@ void Newgraph(int clientfd) {
     // Request for the edges
     message = "Please enter the edges (format: u v weight): \n";
     send(clientfd, message.c_str(), message.size(), 0);
-    message.clear();
+    
     // Loop to receive each edge
     for (int i = 0; i < edges; ++i) {
         nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
         if (nbytes > 0) {
             buf[nbytes] = '\0';
-            std::istringstream iss(buf);
-            int u, v, weight;
-            iss >> u >> v >> weight;
-
+            
+		std::istringstream iss(buf);
+		int u, v, weight;
+		if (!(iss >> u >> v >> weight)) {
+ 		   std::cerr << "Error parsing edge input\n";
+ 			   message = "Invalid edge input format.\n";
+ 			   send(clientfd, message.c_str(), message.size(), 0);
+    		--i; // Retry this iteration
+  		  continue;
+			}
+			memset(buf,0,sizeof(buf));
             // Validate the input before adding the edge
             if (u > vertex || v > vertex) {
                 message = "Invalid edge, please enter again.\n";
@@ -142,6 +171,9 @@ void Newgraph(int clientfd) {
             } else {
                 graph.addEdge(u - 1, v - 1, weight);
             }
+        } else if (nbytes == 0) {
+            std::cerr << "Client disconnected\n";
+            return;
         } else {
             std::cerr << "Error receiving edge input from client.\n";
             return;
@@ -152,6 +184,7 @@ void Newgraph(int clientfd) {
     message = "The graph has been created!\n";
     send(clientfd, message.c_str(), message.size(), 0);
 }
+
 
 
 void MSTFactory::getMSTAlgorithm(Command type, int client_fd) 
@@ -193,77 +226,67 @@ void RemoveEdge(int clientfd) {
 
 std::string handle_recieve_data(int client_fd) {
     char buf[256];
-    int nbytes = recv(client_fd, buf, sizeof(buf), 0);
+    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
     if (nbytes <= 0) {
         if (nbytes == 0) {
-            printf("socket %d hung up\n", client_fd);
+            std::cout << "socket " << client_fd << " hung up\n";
         } else {
-            std::cout << "recv\n";
-                    close(client_fd);
+            std::cerr << "recv error\n";
         }
         close(client_fd);
-        return "exit\ns";
+        return "exit\n";
     }
     buf[nbytes] = '\0';
-  
-    return std::string(buf);
+    std::string input(buf);
+    std::cout << "Received command: " << input << "\n"; // Debugging output
+    return input;
+}
+
+
+void CommandProcessing(int client_fd, Command command) {
+    switch (command) {
+        case Command::Newgraph:
+            commandParsingStage->submitCommand([client_fd]() {
+                Newgraph(client_fd);
+            });
+            break;
+        case Command::Addedge:
+            commandParsingStage->submitCommand([client_fd]() {
+                Addedge(client_fd);
+            });
+            break;
+        case Command::Removeedge:
+            commandParsingStage->submitCommand([client_fd]() {
+                RemoveEdge(client_fd);
+            });
+            break;
+        case Command::Prim:
+        case Command::Kruskal:
+            commandParsingStage->submitCommand([client_fd, command]() {
+                MSTFactory::getMSTAlgorithm(command, client_fd);
+            });
+            break;
+        case Command::Invalid:
+            send(client_fd, "Invalid command!\n", 18, 0);
+            break;
+        case Command::Exit:
+            close(client_fd);
+            break;
+    }
 }
 
 void* Command_Shift(void* client_socket) {
-    int client_fd = *(int*)client_socket;
-    dup2(client_fd, STDIN_FILENO);
+     int client_fd = *(int*)client_socket;
     std::string input;
     Command command = Command::Invalid;
+
     while (command != Command::Exit) {
         input = handle_recieve_data(client_fd);
         command = getCommandFromString(input);
-        switch (command) {
-        
-            case Command::Newgraph:
-                pthread_mutex_lock(&graph_mutex);
-                commandProcessor.submitCommand([client_fd]() {
-                    Newgraph(client_fd);
-                        pthread_mutex_unlock(&graph_mutex);
-                });
-                break;
-                
-            case Command::Prim:
-            case Command::Kruskal:
-                pthread_mutex_lock(&graph_mutex);
-                commandProcessor.submitCommand([client_fd, command]() {
-                    MSTFactory::getMSTAlgorithm(command, client_fd);
-                        pthread_mutex_unlock(&graph_mutex);
-                });
-                break;
-                
-            case Command::Addedge:
-                pthread_mutex_lock(&graph_mutex);
-                commandProcessor.submitCommand([client_fd]() {
-                    Addedge(client_fd);
-                        pthread_mutex_unlock(&graph_mutex);
-                });
-                
-                break;
-            case Command::Removeedge:
-                pthread_mutex_lock(&graph_mutex);
-                commandProcessor.submitCommand([client_fd]() {
-                    RemoveEdge(client_fd);
-                        pthread_mutex_unlock(&graph_mutex);
-                });
-                
-                break;
-            case Command::Invalid:
-                pthread_mutex_lock(&graph_mutex);
-                send(client_fd, "Invalid command!\n", 18, 0);
-		    pthread_mutex_unlock(&graph_mutex);              
-                break;
-            case Command::Exit:
-                close(client_fd);
-                return NULL;
-        }
+        CommandProcessing(client_fd, command);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void* get_in_addr(struct sockaddr* sa) {
