@@ -100,33 +100,59 @@ Command getCommandFromString(const std::string& commandStr) {
 
 void Newgraph(int clientfd) {
     int vertex, edges;
-    std::string message = "Please enter the number of vertices and edges:\n";
-    send(clientfd, message.c_str(), message.size(), 0);
-    message.clear();
-    std::cin >> vertex >> edges;
-    pthread_mutex_lock(&graph_mutex);
-    graph = Graph(vertex, edges);
-    pthread_mutex_unlock(&graph_mutex);
+    std::string message;
     
-    message = "Please enter the edges: \n";
+    // Request for the number of vertices and edges
+    message = "Please enter the number of vertices and edges: \n";
     send(clientfd, message.c_str(), message.size(), 0);
     message.clear();
     
-    for (int i = 0; i < edges; i++) {
-        int u, v, weight;
-        std::cin >> u >> v >> weight;
-        while (u > vertex || v > vertex) {
-            std::cout << "Please enter valid edges:" << std::endl;
-            std::cin >> u >> v >> weight;
-        }
-        pthread_mutex_lock(&graph_mutex);
-        graph.addEdge(u - 1, v - 1, weight);
-        pthread_mutex_unlock(&graph_mutex);
+    char buf[256];
+    int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+    if (nbytes > 0) {
+        buf[nbytes] = '\0';
+        std::istringstream iss(buf);
+        iss >> vertex >> edges;
+    } else {
+        std::cerr << "Error receiving vertex/edge input from client.\n";
+        return;
     }
+
+    // Create the graph
+    graph = Graph(vertex, edges);
+    
+    // Request for the edges
+    message = "Please enter the edges (format: u v weight): \n";
+    send(clientfd, message.c_str(), message.size(), 0);
+    message.clear();
+    // Loop to receive each edge
+    for (int i = 0; i < edges; ++i) {
+        nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+        if (nbytes > 0) {
+            buf[nbytes] = '\0';
+            std::istringstream iss(buf);
+            int u, v, weight;
+            iss >> u >> v >> weight;
+
+            // Validate the input before adding the edge
+            if (u > vertex || v > vertex) {
+                message = "Invalid edge, please enter again.\n";
+                send(clientfd, message.c_str(), message.size(), 0);
+                --i; // Retry this iteration
+            } else {
+                graph.addEdge(u - 1, v - 1, weight);
+            }
+        } else {
+            std::cerr << "Error receiving edge input from client.\n";
+            return;
+        }
+    }
+
+    // Notify the client that the graph has been created
     message = "The graph has been created!\n";
     send(clientfd, message.c_str(), message.size(), 0);
-    message.clear();
 }
+
 
 void MSTFactory::getMSTAlgorithm(Command type, int client_fd) 
 {
@@ -153,9 +179,7 @@ void Addedge(int clientfd) {
     send(clientfd, message.c_str(), message.size(), 0);
     message.clear();
     std::cin >> u >> v >> weight;
-    pthread_mutex_lock(&graph_mutex);
     graph.addEdge(u - 1, v - 1, weight);
-    pthread_mutex_unlock(&graph_mutex);
 }
 
 void RemoveEdge(int clientfd) {
@@ -164,9 +188,7 @@ void RemoveEdge(int clientfd) {
     send(clientfd, message.c_str(), message.size(), 0);
     message.clear();
     std::cin >> i >> j;
-    pthread_mutex_lock(&graph_mutex);
     graph.removeEdge(i - 1, j - 1);
-    pthread_mutex_unlock(&graph_mutex);
 }
 
 std::string handle_recieve_data(int client_fd) {
@@ -183,6 +205,7 @@ std::string handle_recieve_data(int client_fd) {
         return "exit\ns";
     }
     buf[nbytes] = '\0';
+  
     return std::string(buf);
 }
 
@@ -191,41 +214,48 @@ void* Command_Shift(void* client_socket) {
     dup2(client_fd, STDIN_FILENO);
     std::string input;
     Command command = Command::Invalid;
-
     while (command != Command::Exit) {
-    	input.clear();
         input = handle_recieve_data(client_fd);
         command = getCommandFromString(input);
-
         switch (command) {
+        
             case Command::Newgraph:
+                pthread_mutex_lock(&graph_mutex);
                 commandProcessor.submitCommand([client_fd]() {
                     Newgraph(client_fd);
+                        pthread_mutex_unlock(&graph_mutex);
                 });
                 break;
                 
             case Command::Prim:
             case Command::Kruskal:
+                pthread_mutex_lock(&graph_mutex);
                 commandProcessor.submitCommand([client_fd, command]() {
                     MSTFactory::getMSTAlgorithm(command, client_fd);
+                        pthread_mutex_unlock(&graph_mutex);
                 });
                 break;
                 
             case Command::Addedge:
+                pthread_mutex_lock(&graph_mutex);
                 commandProcessor.submitCommand([client_fd]() {
                     Addedge(client_fd);
+                        pthread_mutex_unlock(&graph_mutex);
                 });
                 
                 break;
             case Command::Removeedge:
+                pthread_mutex_lock(&graph_mutex);
                 commandProcessor.submitCommand([client_fd]() {
                     RemoveEdge(client_fd);
+                        pthread_mutex_unlock(&graph_mutex);
                 });
                 
                 break;
             case Command::Invalid:
+                pthread_mutex_lock(&graph_mutex);
                 send(client_fd, "Invalid command!\n", 18, 0);
-                
+		    pthread_mutex_unlock(&graph_mutex);              
                 break;
             case Command::Exit:
                 close(client_fd);
