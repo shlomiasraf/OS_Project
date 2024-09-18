@@ -28,6 +28,7 @@ void CommunicationStage::execute()
 
 std::string CommunicationStage::handleReceiveData(int client_fd) {
     char buf[256];
+    memset(buf, 0, sizeof(buf));
     int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
     if (nbytes <= 0) {
         if (nbytes == 0) {

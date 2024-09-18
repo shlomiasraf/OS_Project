@@ -7,6 +7,7 @@ class CommandExecuteStage : public ActiveObject
     std::mutex queueMutex;
     std::condition_variable cv;
     Graph graph{0,0};
+
     std::mutex graphMutex; // Mutex to protect access to the graph
 
 public:

@@ -36,7 +36,6 @@ void CommandExecuteStage::Addedge(int clientfd)
     recv(clientfd, (char*)&weight, sizeof(weight), 0);
 
     {
-        std::lock_guard<std::mutex> lock(graphMutex); // Protect the graph
         graph.addEdge(u - 1, v - 1, weight);
     }
 }
@@ -51,25 +50,42 @@ void CommandExecuteStage::RemoveEdge(int clientfd)
     recv(clientfd, (char*)&j, sizeof(j), 0);
 
     {
-        std::lock_guard<std::mutex> lock(graphMutex); // Protect the graph
         graph.removeEdge(i - 1, j - 1);
     }
 }
 
+
 void CommandExecuteStage::Newgraph(int clientfd) 
 {
+     std::unique_lock<std::mutex> lock(queueMutex);
     int vertex, edges;
     std::string message = "Please enter the number of vertices and edges: \n";
     send(clientfd, message.c_str(), message.size(), 0);
 
-    char buf[256];
-    int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
-    if (nbytes > 0) {
-        buf[nbytes] = '\0';
-        std::istringstream iss(buf);
-        iss >> vertex >> edges;
-    } else {
-        std::cerr << "Error receiving vertex/edge input from client.\n";
+    // Loop until we get complete input
+    char buf[8192];
+    int nbytes = 0;
+    std::string input;
+
+    // Read until we get complete input for vertex/edges
+    while (true) {
+        nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+        if (nbytes > 0) {
+            buf[nbytes] = '\0';
+            input += buf;
+            if (input.find('\n') != std::string::npos) {  // Assuming input ends with newline
+                break;
+            }
+        } else {
+            std::cerr << "Error receiving vertex/edge input from client.\n";
+            return;
+        }
+    }
+
+    // Parse the input
+    std::istringstream iss(input);
+    if (!(iss >> vertex >> edges)) {
+        std::cerr << "Error parsing vertex/edges input.\n";
         return;
     }
 
@@ -81,32 +97,41 @@ void CommandExecuteStage::Newgraph(int clientfd)
     message = "Please enter the edges (format: u v weight): \n";
     send(clientfd, message.c_str(), message.size(), 0);
 
+    // Now read edges in a loop
     for (int i = 0; i < edges; ++i) 
     {
-        nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
-        if (nbytes > 0) {
-            buf[nbytes] = '\0';
-            std::istringstream iss(buf);
-            int u, v, weight;
-            if (!(iss >> u >> v >> weight)) {
-                std::cerr << "Error parsing edge input\n";
-                message = "Invalid edge input format.\n";
-                send(clientfd, message.c_str(), message.size(), 0);
-                --i;
-                continue;
-            }
-
-            if (u > vertex || v > vertex) {
-                message = "Invalid edge, please enter again.\n";
-                send(clientfd, message.c_str(), message.size(), 0);
-                --i;
+        input.clear();  // Reset input string for each edge
+        while (true) {
+            nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+            if (nbytes > 0) {
+                buf[nbytes] = '\0';
+                input += buf;
+                if (input.find('\n') != std::string::npos) {  // Assuming each edge ends with newline
+                    break;
+                }
             } else {
-                std::lock_guard<std::mutex> lock(graphMutex); // Protect the graph
-                graph.addEdge(u - 1, v - 1, weight);
+                std::cerr << "Error receiving edge input from client.\n";
+                return;
             }
+        }
+
+        // Parse the edge input
+        std::istringstream iss(input);
+        int u, v, weight;
+        if (!(iss >> u >> v >> weight)) {
+            std::cerr << "Error parsing edge input\n";
+            message = "Invalid edge input format.\n";
+            send(clientfd, message.c_str(), message.size(), 0);
+            --i;  // Retry this edge
+            continue;
+        }
+
+        if (u > vertex || v > vertex) {
+            message = "Invalid edge, please enter again.\n";
+            send(clientfd, message.c_str(), message.size(), 0);
+            --i;  // Retry this edge
         } else {
-            std::cerr << "Error receiving edge input from client.\n";
-            return;
+            graph.addEdge(u - 1, v - 1, weight);
         }
     }
 
@@ -114,13 +139,13 @@ void CommandExecuteStage::Newgraph(int clientfd)
     send(clientfd, message.c_str(), message.size(), 0);
 }
 
+
 void CommandExecuteStage::getMSTAlgorithm(Command type, int client_fd) 
 {
     PrimMST primInstance;
     KruskalMST kruskalInstance;
     std::string message;
 
-    std::lock_guard<std::mutex> lock(graphMutex); // Protect the graph
     switch (type) 
     {
         case Command::Prim:
@@ -138,11 +163,13 @@ void CommandExecuteStage::getMSTAlgorithm(Command type, int client_fd)
 
 void CommandExecuteStage::processCommand(int client_fd, Command command) 
 {
+
+            std::string message="";
     switch (command) 
     {
+    
         case Command::Newgraph:
-            enqueue([this, client_fd]() { 
-                Newgraph(client_fd); });
+            enqueue([this, client_fd]() {  Newgraph(client_fd); });
             break;
         case Command::Addedge:
             enqueue([this, client_fd]() { Addedge(client_fd); });
@@ -155,7 +182,8 @@ void CommandExecuteStage::processCommand(int client_fd, Command command)
             enqueue([this, client_fd, command]() { getMSTAlgorithm(command, client_fd); });
             break;
         case Command::Invalid:
-            send(client_fd, "Invalid command!\n", 18, 0);
+            message="Invalid command!\n";
+  	    send(client_fd, message.c_str(), message.size(), 0);
             break;
         case Command::Exit:
             // Handle exit case separately if needed

@@ -105,14 +105,16 @@ void pipeline() {
                     std::cout << "Client " << client_fd << " disconnected\n";
                     break;
                 }
-
-                // Convert received data to command
+		
+		
+                // Convert received data to command, stage 1 input->output
                 Command command = communicationStage.getCommandFromString(receivedData);
-
-                // Enqueue the command for execution
+		
+                // Enqueue the command for execution, stage 2 input(stage 1 input)->output
                 commandExecuteStage.enqueue([client_fd, command, &commandExecuteStage]() {
                     commandExecuteStage.processCommand(client_fd, command);
                 });
+                
             }
             close(client_fd);  // Close the client connection after the client exits
         }).detach();  // Detach the thread to run independently
