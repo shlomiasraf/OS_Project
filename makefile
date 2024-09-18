@@ -2,19 +2,19 @@
 CC = g++
 
 # Compiler flags
-CFLAGS = -Wall 
+CFLAGS = -Wall
 
 # Source files
-SRCS = Graph.cpp primMST.cpp kruskalMST.cpp MSTFactory.cpp proactor.cpp
+SRCS = ActiveObject.cpp Graph.cpp primMST.cpp kruskalMST.cpp CommandExecuteStage.cpp CommunicationStage.cpp ResultProcessingStage.cpp main.cpp
 
 # Header files
-HEADERS = Graph.hpp primMST.hpp kruskalMST.hpp MSTFactory.hpp proactor.hpp
+HEADERS = ActiveObject.hpp Graph.hpp primMST.hpp kruskalMST.hpp CommandExecuteStage.hpp CommunicationStage.hpp ResultProcessingStage.hpp MSTFactory.hpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 
 # Output file
-OUTPUT = MSTFactory
+OUTPUT = MSTApp
 
 # Default target
 all: $(OUTPUT)
