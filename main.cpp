@@ -101,12 +101,6 @@ void pipeline() {
             while (true) {
                 // Receive data from the client
                 std::string receivedData = communicationStage.handleReceiveData(client_fd);
-                if (receivedData == "exit\n") {
-                    std::cout << "Client " << client_fd << " disconnected\n";
-                    break;
-                }
-		
-		
                 // Convert received data to command, stage 1 input->output
                 Command command = communicationStage.getCommandFromString(receivedData);
 		

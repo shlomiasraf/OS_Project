@@ -186,7 +186,8 @@ void CommandExecuteStage::processCommand(int client_fd, Command command)
   	    send(client_fd, message.c_str(), message.size(), 0);
             break;
         case Command::Exit:
-            // Handle exit case separately if needed
+            // Send client to the disconnector
+            disconnector.disconnectClient(client_fd);
             break;
     }
 }

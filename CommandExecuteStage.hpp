@@ -1,4 +1,6 @@
 #include "ActiveObject.hpp"
+#include "DisconnecterStage.hpp"  // Include the header for DisconnecterStage
+#include <functional>
 
 class CommandExecuteStage : public ActiveObject 
 {
@@ -7,6 +9,7 @@ class CommandExecuteStage : public ActiveObject
     std::mutex queueMutex;
     std::condition_variable cv;
     Graph graph{0,0};
+    DisconnecterStage disconnector;
 
     std::mutex graphMutex; // Mutex to protect access to the graph
 

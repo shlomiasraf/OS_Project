@@ -8,6 +8,7 @@ private:
     std::queue<std::function<void()>> taskQueue;
     std::mutex queueMutex;
     std::condition_variable cv;
+
 public:
     Command getCommandFromString(const std::string& commandStr);
     std::string handleReceiveData(int client_fd);
