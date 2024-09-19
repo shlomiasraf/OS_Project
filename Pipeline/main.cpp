@@ -121,7 +121,6 @@ void pipeline() {
                 });
                 
             }
-            close(client_fd);  // Close the client connection after the client exits
         }).detach();  // Detach the thread to run independently
     }
 

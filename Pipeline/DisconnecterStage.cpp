@@ -36,7 +36,9 @@ void DisconnecterStage::execute() {
 }
 
 // Simulate disconnecting a client
-void DisconnecterStage::disconnectClient(int clientId) {
+void DisconnecterStage::disconnectClient(int clientId) 
+{
+    close(clientId);  // Close the client connection after the client exits
     std::cout << "Disconnecting client with ID: " << clientId << std::endl;
     std::this_thread::sleep_for(std::chrono::seconds(1)); // Simulate delay in disconnection
     std::cout << "Client " << clientId << " disconnected successfully." << std::endl;
