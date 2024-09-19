@@ -1,7 +1,8 @@
 #include "RequestHandling.hpp"
-
+    std::mutex graphMutex; // Mutex for thread-safe access to the graph
+    
    RequestHandling::RequestHandling(Graph& graph)
-    : graph(graph),graphMutex(){}
+    : graph(graph){}
 
 Command RequestHandling::getCommandFromString(const std::string &commandStr)
 {
@@ -161,6 +162,7 @@ void RequestHandling::processCommand(int client_fd, Command command)
 
 void RequestHandling::processClient(int clientfd) 
 {
+    // Lock the global mutex to ensure only one client can process commands at a time
     char buf[1024];
     std::string commandStr;
     

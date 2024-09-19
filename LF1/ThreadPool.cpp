@@ -32,7 +32,7 @@ void ThreadPool::start() {
                     if (i == activeLeaderIndex) {
                         if (!tasks.empty()) {
                             task = std::move(tasks.front());
-                            taskso.pop();
+                            tasks.pop();
 
                             // Move leadership to the next thread
                             activeLeaderIndex = (activeLeaderIndex + 1) % workers.size();

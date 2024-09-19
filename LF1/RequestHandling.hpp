@@ -45,7 +45,6 @@ public:
 
 private:
     Graph graph;  // Shared graph object
-    std::mutex graphMutex; // Mutex for thread-safe access to the graph
     void Newgraph(int clientfd);
     void Addedge(int clientfd);
     void RemoveEdge(int clientfd);
