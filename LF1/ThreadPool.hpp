@@ -29,4 +29,3 @@ private:
     bool stopFlag; // Flag to indicate stopping
     size_t activeLeaderIndex; // Track the current leader thread
 };
-

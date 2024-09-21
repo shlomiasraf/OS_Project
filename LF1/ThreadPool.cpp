@@ -33,9 +33,6 @@ void ThreadPool::start() {
                         if (!tasks.empty()) {
                             task = std::move(tasks.front());
                             tasks.pop();
-
-                            // Move leadership to the next thread
-                            activeLeaderIndex = (activeLeaderIndex + 1) % workers.size();
                         }
                     }
                 }
@@ -43,11 +40,22 @@ void ThreadPool::start() {
                 if (task) {
                     // Execute the task
                     task();
+
+                    // After the task is executed, pass leadership
+                    {
+                        std::unique_lock<std::mutex> lock(tasksMutex);
+                        activeLeaderIndex = (activeLeaderIndex + 1) % workers.size();
+                    }
+
+                    // Notify all threads to let the new leader take over
+                    condition.notify_all();
                 }
             }
         });
     }
 }
+
+
 
 void ThreadPool::enqueue(std::function<void()> task) {
     {
@@ -71,4 +79,3 @@ void ThreadPool::stop() {
         }
     }
 }
-

@@ -1,5 +1,5 @@
 #include "RequestHandling.hpp"
-    std::mutex graphMutex; // Mutex for thread-safe access to the graph
+
     
    RequestHandling::RequestHandling(Graph& graph)
     : graph(graph){}
@@ -31,7 +31,7 @@ Command RequestHandling::getCommandFromString(const std::string &commandStr)
 
 void RequestHandling::Addedge(int clientfd) 
 {
-    std::lock_guard<std::mutex> lock(graphMutex); // Lock the mutex
+
     int u, v, weight;
     std::string message = "Please enter edge you wish to add\n";
     send(clientfd, message.c_str(), message.size(), 0);
@@ -47,7 +47,6 @@ void RequestHandling::Addedge(int clientfd)
 
 void RequestHandling::RemoveEdge(int clientfd) 
 {
-    std::lock_guard<std::mutex> lock(graphMutex); // Lock the mutex
     int i, j;
     std::string message = "Enter edge to remove (i j): \n";
     send(clientfd, message.c_str(), message.size(), 0);
@@ -63,7 +62,6 @@ void RequestHandling::RemoveEdge(int clientfd)
 
 void RequestHandling::Newgraph(int clientfd) 
 {
-    std::lock_guard<std::mutex> lock(graphMutex); // Lock the mutex
     int vertex, edges;
     std::string message = "Please enter the number of vertices and edges: \n";
     send(clientfd, message.c_str(), message.size(), 0);
@@ -110,7 +108,7 @@ void RequestHandling::Newgraph(int clientfd)
 }
 void RequestHandling::getMSTAlgorithm(Command type, int client_fd) 
 {
-    std::lock_guard<std::mutex> lock(graphMutex); // Lock the mutex
+
     PrimMST primInstance;
     KruskalMST kruskalInstance;
     std::string message;
@@ -194,4 +192,3 @@ void RequestHandling::processClient(int clientfd)
         processCommand(clientfd, command);
     }
 }
-
