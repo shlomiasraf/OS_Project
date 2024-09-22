@@ -40,16 +40,16 @@ public:
     // Destructor
     //~RequestHandling();
     // Helper function to process each client
-    void processClient(int clientfds);
 
+    void processCommand(int clientfd, Command command);
+    Command getCommandFromString(const std::string& commandStr);
 private:
     Graph graph;  // Shared graph object
     void Newgraph(int clientfd);
     void Addedge(int clientfd);
     void RemoveEdge(int clientfd);
     void getMSTAlgorithm(Command type, int clientfd);
-    Command getCommandFromString(const std::string& commandStr);
-    void processCommand(int clientfd, Command command);
+	
     std::string receiveFullInput(int clientfd);
 };
 

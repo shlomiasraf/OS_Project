@@ -157,37 +157,4 @@ void RequestHandling::processCommand(int client_fd, Command command)
             break;
     }
 }
-void RequestHandling::processClient(int clientfd) 
-{
-    char buf[1024];
-    std::string commandStr;
-    
-    while (true) {
-        // Clear the buffer
-        memset(buf, 0, sizeof(buf));
-        
-        // Receive the command from the client
-        int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
-        if (nbytes <= 0) {
-            if (nbytes == 0) {
-                // Connection closed by client
-                std::cout << "Client disconnected.\n";
-            } else {
-                std::cerr << "Error receiving data from client.\n";
-            }
-            close(clientfd);
-            return;
-        }
-        
-        // Convert buffer to string and trim whitespace/newline
-        commandStr.assign(buf);
-        commandStr.erase(commandStr.find_last_not_of(" \n\r\t") + 1);
-        
-        // Parse the command from string
-        Command command = getCommandFromString(commandStr);
-        
-        // Process the command
-        processCommand(clientfd, command);
-    }
-}
 

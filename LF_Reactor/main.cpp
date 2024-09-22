@@ -14,14 +14,31 @@ RequestHandling* requestHandlerPtr; // Pointer to the request handler
 Reactor* reactorPtr;       // Pointer to the reactor
 
 void* handleNewConnection(int client_fd) {
-    poolPtr->enqueue([client_fd]() {
-        std::cout << "Processing request from client: " << client_fd << std::endl;
-        
-        // Call the request handler
-        requestHandlerPtr->processClient(client_fd);
+    // Read the command from the client
+    char buf[1024];
+    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+    if (nbytes <= 0) {
+        std::cerr << "Error receiving data from client." << std::endl;
+        close(client_fd);
+        return nullptr;
+    }
+    buf[nbytes] = '\0'; // Null-terminate the string
 
+    std::string commandStr(buf);
+    commandStr.erase(commandStr.find_last_not_of(" \n\r\t") + 1); // Trim whitespace
+
+    // Parse the command from the string
+    Command command = requestHandlerPtr->getCommandFromString(commandStr);
+
+    // Enqueue the command processing
+    poolPtr->enqueue([client_fd, command]() {
+        std::cout << "Processing command from client: " << client_fd << std::endl;
+        
+        // Call the request handler to process the command
+        requestHandlerPtr->processCommand(client_fd, command);
         close(client_fd); // Close client connection after processing
     });
+
     return nullptr; // Return immediately to avoid blocking
 }
 
@@ -103,4 +120,3 @@ int main() {
     close(server_fd);
     return 0;
 }
-
