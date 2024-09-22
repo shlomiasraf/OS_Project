@@ -5,10 +5,10 @@ CC = g++
 CFLAGS = -Wall -std=c++17
 
 # Source files
-SRCS = Graph.cpp primMST.cpp kruskalMST.cpp ThreadPool.cpp RequestHandling.cpp main.cpp
+SRCS = Graph.cpp primMST.cpp kruskalMST.cpp ThreadPool.cpp RequestHandling.cpp HandleSet.cpp main.cpp
 
 # Header files
-HEADERS = Graph.hpp primMST.hpp kruskalMST.hpp ThreadPool.hpp RequestHandling.hpp
+HEADERS = Graph.hpp primMST.hpp kruskalMST.hpp ThreadPool.hpp RequestHandling.hpp HandleSet.hpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)

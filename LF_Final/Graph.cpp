@@ -3,10 +3,14 @@
 
 // Create a new graph with V vertices
 Graph::Graph(int V, int edges) : V(V), edges(edges), adjList(V, std::vector<int>(V, 0)) {}
-void Graph::resize(int size)
-{
-    adjList.resize(size, std::vector<int>(size, 0));  
+void Graph::resize(int size) {
+    if (size < 0) {
+        throw std::invalid_argument("Size must be non-negative");
+    }
+    // Resize the adjacency list to the new size
+    adjList.resize(size); 
 }
+
 // Add an edge to the graph
 void Graph::addEdge(int src, int dest, int weight) 
 {

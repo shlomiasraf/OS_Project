@@ -1,26 +1,25 @@
 #ifndef REQUESTHANDLING_HPP
 #define REQUESTHANDLING_HPP
+
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <string>
 #include <mutex>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <cerrno>
 #include <queue>
 #include <functional>
 #include <algorithm>
 #include <iostream>
 #include <sys/socket.h>
-#include <unistd.h>
 #include <sstream>
 #include <set>
-#include <cstring> 
+#include <cstring>
 #include "Graph.hpp"
 #include "primMST.hpp"
 #include "kruskalMST.hpp"
-#include "ThreadPool.hpp"
+
 
 // Enum for commands
 enum class Command {
@@ -35,13 +34,13 @@ enum class Command {
 
 class RequestHandling {
 public:
-    // Constructor
+    // Existing constructor
     RequestHandling(Graph& graph);
-
+    
     // Destructor
     //~RequestHandling();
     // Helper function to process each client
-    void processClient(int clientfd, ThreadPool& pool);
+    void processClient(int clientfds);
 
 private:
     Graph graph;  // Shared graph object
@@ -49,11 +48,10 @@ private:
     void Addedge(int clientfd);
     void RemoveEdge(int clientfd);
     void getMSTAlgorithm(Command type, int clientfd);
-    // Function to get the command from the string input
     Command getCommandFromString(const std::string& commandStr);
     void processCommand(int clientfd, Command command);
-
-
+    std::string receiveFullInput(int clientfd);
 };
 
 #endif // REQUESTHANDLING_HPP
+

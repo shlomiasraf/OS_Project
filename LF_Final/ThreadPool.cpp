@@ -1,7 +1,11 @@
 #include "ThreadPool.hpp"
+#include <iostream>
 
-ThreadPool::ThreadPool(size_t numThreads) : stopFlag(false), activeLeaderIndex(0) {
-    workers.reserve(numThreads);
+ThreadPool::ThreadPool(size_t numThreads) : stopFlag(false), leaderIndex(0) {
+    followers.resize(numThreads, true); // Initially all threads are followers
+    for (size_t i = 0; i < numThreads; ++i) {
+        workers.emplace_back(&ThreadPool::threadFunction, this, i); // Pass the index to each thread
+    }
 }
 
 ThreadPool::~ThreadPool() {
@@ -9,75 +13,65 @@ ThreadPool::~ThreadPool() {
 }
 
 void ThreadPool::start() {
-    for (size_t i = 0; i < workers.capacity(); ++i) {
-        workers.emplace_back([this, i] {
-            while (true) {
-                std::function<void()> task;
-
-                // Lock the task queue
-                {
-                    std::unique_lock<std::mutex> lock(tasksMutex);
-
-                    // Wait for tasks or stopping signal
-                    condition.wait(lock, [this] {
-                        return stopFlag || !tasks.empty();
-                    });
-
-                    if (stopFlag && tasks.empty()) {
-                        return; // Exit the thread
-                    }
-
-                    // If this thread is the leader, pick a task
-                    if (i == activeLeaderIndex) {
-                        if (!tasks.empty()) {
-                            task = std::move(tasks.front());
-                            tasks.pop();
-                        }
-                    }
-                }
-
-                // Execute the task
-                if (task) {
-                    printf("Executing task...\n");  // Debug line
-                    task();
-
-                    // After executing, pass leadership
-                    {
-                        std::unique_lock<std::mutex> lock(tasksMutex);
-                        activeLeaderIndex = (activeLeaderIndex + 1) % workers.size();
-                    }
-
-                    // Notify all threads to let the new leader take over
-                    condition.notify_all();
-                }
-            }
-        });
-    }
-}
-
-
-
-
-
-void ThreadPool::enqueue(std::function<void()> task) {
-    {
-        std::unique_lock<std::mutex> lock(tasksMutex);
-        tasks.push(std::move(task));
-    }
-    condition.notify_all();
+    stopFlag = false;
 }
 
 void ThreadPool::stop() {
     {
-        std::unique_lock<std::mutex> lock(tasksMutex);
+        std::unique_lock<std::mutex> lock(queueMutex);
         stopFlag = true;
     }
-    condition.notify_all();
-
-    // Join all threads
+    condition.notify_all(); // Wake up all threads to stop them
     for (std::thread &worker : workers) {
         if (worker.joinable()) {
-            worker.join();
+            worker.join();  // Wait for each thread to finish
         }
     }
 }
+
+void ThreadPool::threadFunction(int index) {
+    while (true) {
+        {
+            std::unique_lock<std::mutex> lock(queueMutex);
+            condition.wait(lock, [this, index] { 
+                return stopFlag || (index == leaderIndex && !tasks.empty()); 
+            });
+
+            if (stopFlag && tasks.empty()) return; // Exit if stop and no tasks
+
+            if (index == leaderIndex) {
+                becomeLeader(index); // Current thread becomes leader
+            } else {
+                becomeFollower(index); // Current thread remains a follower
+            }
+        }
+    }
+}
+
+void ThreadPool::becomeLeader(int index) {
+    // Fetch and execute task
+    if (!tasks.empty()) {
+        std::function<void()> task = std::move(tasks.front());
+        tasks.pop();
+
+        // Log the task being picked by leader
+        std::cout << "Leader thread (index " << index << ", ID " << std::this_thread::get_id() 
+                  << ") is handling the task." << std::endl;
+
+        // Execute task
+        task(); // Call the task
+    }
+
+    // After handling the task, assign next leader
+    {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        leaderIndex = (leaderIndex + 1) % workers.size();  // Pass leadership to next thread
+    }
+    condition.notify_all();  // Notify the next leader to take over
+}
+
+void ThreadPool::becomeFollower(int index) {
+    // This function doesn't need to do anything specific for followers
+    std::cout << "Follower thread (index " << index << ") is waiting." << std::endl;
+}
+

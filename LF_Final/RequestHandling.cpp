@@ -1,8 +1,8 @@
 #include "RequestHandling.hpp"
 
     
-   RequestHandling::RequestHandling(Graph& graph)
-    : graph(graph){}
+  RequestHandling::RequestHandling(Graph &graph) : graph(graph){
+  }
 
 Command RequestHandling::getCommandFromString(const std::string &commandStr)
 {
@@ -49,6 +49,7 @@ void RequestHandling::RemoveEdge(int clientfd)
 {
     int i, j;
     std::string message = "Enter edge to remove (i j): \n";
+    std::cout << std::flush;
     send(clientfd, message.c_str(), message.size(), 0);
 
     recv(clientfd, (char*)&i, sizeof(i), 0);
@@ -106,9 +107,9 @@ void RequestHandling::Newgraph(int clientfd)
 	 message = "The graph has been created!\n";
     	send(clientfd, message.c_str(), message.size(), 0);
 }
+
 void RequestHandling::getMSTAlgorithm(Command type, int client_fd) 
 {
-
     PrimMST primInstance;
     KruskalMST kruskalInstance;
     std::string message;
@@ -132,7 +133,6 @@ void RequestHandling::getMSTAlgorithm(Command type, int client_fd)
 
 void RequestHandling::processCommand(int client_fd, Command command) 
 {
-
     switch (command) 
     {
         case Command::Newgraph:
@@ -157,35 +157,37 @@ void RequestHandling::processCommand(int client_fd, Command command)
             break;
     }
 }
-
-void RequestHandling::processClient(int clientfd, ThreadPool& pool) 
+void RequestHandling::processClient(int clientfd) 
 {
-   char buf[1024];
+    char buf[1024];
     std::string commandStr;
-
-    memset(buf, 0, sizeof(buf));
-
-    /// Attempt to receive the command from the client
-    int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
-    if (nbytes <= 0) {
-        if (nbytes == 0) {
-            std::cout << "Client disconnected.\n";
-        } else {
-            std::cerr << "Error receiving data from client.\n";
+    
+    while (true) {
+        // Clear the buffer
+        memset(buf, 0, sizeof(buf));
+        
+        // Receive the command from the client
+        int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+        if (nbytes <= 0) {
+            if (nbytes == 0) {
+                // Connection closed by client
+                std::cout << "Client disconnected.\n";
+            } else {
+                std::cerr << "Error receiving data from client.\n";
+            }
+            close(clientfd);
+            return;
         }
-        close(clientfd);
-        return;
+        
+        // Convert buffer to string and trim whitespace/newline
+        commandStr.assign(buf);
+        commandStr.erase(commandStr.find_last_not_of(" \n\r\t") + 1);
+        
+        // Parse the command from string
+        Command command = getCommandFromString(commandStr);
+        
+        // Process the command
+        processCommand(clientfd, command);
     }
-
-    // Convert buffer to string and trim whitespace/newline
-    commandStr.assign(buf);
-    commandStr.erase(commandStr.find_last_not_of(" \n\r\t") + 1);
-    
-    // Parse the command from string
-    Command command = getCommandFromString(commandStr);
-    
-    // Enqueue the command to be processed in a separate task
-    pool.enqueue([this,clientfd ,command]() {
-        processCommand(clientfd,command);
-    });
 }
+
