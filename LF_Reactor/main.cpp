@@ -13,16 +13,18 @@ ThreadPool* poolPtr;       // Pointer to the thread pool
 RequestHandling* requestHandlerPtr; // Pointer to the request handler
 Reactor* reactorPtr;       // Pointer to the reactor
 
-// Function to handle a new client connection
 void* handleNewConnection(int client_fd) {
-    // Enqueue the client request processing to the thread pool
     poolPtr->enqueue([client_fd]() {
         std::cout << "Processing request from client: " << client_fd << std::endl;
+        
+        // Call the request handler
         requestHandlerPtr->processClient(client_fd);
+
         close(client_fd); // Close client connection after processing
     });
-    return nullptr;
+    return nullptr; // Return immediately to avoid blocking
 }
+
 
 // Function to set up the server
 int setup_server() {

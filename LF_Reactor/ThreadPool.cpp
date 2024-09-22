@@ -1,8 +1,8 @@
 #include "ThreadPool.hpp"
 
-ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
+ThreadPool::ThreadPool(size_t numThreads) : leaderIndex(0), stop(false) { // Reorder initialization
     for (size_t i = 0; i < numThreads; ++i) {
-        workers.emplace_back([this] {
+        workers.emplace_back([this, i] {
             while (true) {
                 std::function<void()> task;
 
@@ -11,13 +11,22 @@ ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
                     this->condition.wait(lock, [this] {
                         return this->stop || !this->tasks.empty();
                     });
+
                     if (this->stop && this->tasks.empty())
                         return;
-                    task = std::move(this->tasks.front());
-                    this->tasks.pop();
+
+                    // Only the current leader processes the task
+                    if (i == leaderIndex && !this->tasks.empty()) {
+                        task = std::move(this->tasks.front());
+                        this->tasks.pop();
+                    }
                 }
 
-                task();
+                // If a task was processed, rotate the leader
+                if (task) {
+                    task(); // Execute the task
+                    leaderIndex = (leaderIndex + 1) % workers.size(); // Rotate the leader
+                }
             }
         });
     }
@@ -39,6 +48,6 @@ void ThreadPool::enqueue(std::function<void()> task) {
         std::unique_lock<std::mutex> lock(queueMutex);
         tasks.emplace(std::move(task));
     }
-    condition.notify_one();
+    condition.notify_all(); // Notify all workers to wake up
 }
 
