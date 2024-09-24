@@ -35,28 +35,18 @@ public:
 
     // Constructor
     ActiveObject();
-    
     // Destructor
     virtual ~ActiveObject();
     // Enqueue a method request to be processed
-    
-    virtual void enqueue(std::function<void()> request) = 0;
-    // Start processing requests
-    
+    void enqueue(std::function<void()> request);   
     void start();
     // Stop processing requests
-
     void stop();
-        void workerFunction();
-            std::thread workerThread;
+    void workerFunction();
+    std::thread workerThread;
+    
 protected:
-
-
-
-     // The worker thread for processing requests
-
     // Queue for method requests
-
     std::queue<std::function<void()>> requestQueue;
     // Mutex for synchronizing access to the queue
     std::mutex queueMutex;

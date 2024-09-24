@@ -10,7 +10,6 @@ class CommandExecuteStage : public ActiveObject {
 public:
     CommandExecuteStage();
     ~CommandExecuteStage();
-    void enqueue(std::function<void()> request) override;
     Command processCommand(int client_fd, Command command);
 private:
     void AddEdge(int client_fd);

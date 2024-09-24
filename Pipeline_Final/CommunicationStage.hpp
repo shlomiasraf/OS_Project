@@ -10,9 +10,8 @@ public:
 
     // Public function to handle client communication
     Command processClient(int client_fd);
-    void enqueue(std::function<void()> request) override;
     bool shouldStop;  
-    
+    Command enqueueProcessClient(int client_fd);
 private:
 
    std::string handleReceiveData(int client_fd);

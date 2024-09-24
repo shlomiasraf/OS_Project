@@ -1,15 +1,19 @@
-
-
 #include <iostream>
 #include <thread>
+#include <vector>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #include "ClientConnectionStage.hpp"
 #include "CommunicationStage.hpp"
 #include "CommandExecuteStage.hpp"
 #include "DisconnecterStage.hpp"
-#define PORT 9034
+#include <mutex>
 
+#define PORT 9034
+const int MAX_CLIENTS = 10; // Maximum number of clients to accept
+
+// Helper function to set up the server
 int setup_server() {
     // Create a socket
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,52 +41,58 @@ int setup_server() {
     return server_fd;
 }
 
-#include <iostream>
-#include <thread>
-
-// Other includes as necessary...
-
-#include <iostream>
-#include <thread>
-
-// Other includes as necessary...
+// Function to handle clients through all stages
+void handleClient(int client_fd, CommunicationStage& communicationStage, CommandExecuteStage& commandExecuteStage, DisconnecterStage& disconnecterStage) {
+    Command command = communicationStage.processClient(client_fd);
+    while (true) {
+        // Process the command
+        command = commandExecuteStage.processCommand(client_fd, command);
+    	//command = communicationStage.processClient(client_fd);
+        // If the command is Exit, disconnect the client
+        if (command == Command::Exit) {
+            disconnecterStage.disconnectClient(client_fd);
+            break;
+        }
+    }
+}
 
 int main() {
+    // Create server socket
     int server_fd = setup_server();
+    std::cout << "Server listening on port " << PORT << std::endl;
 
-    // Create instances of each stage
+    // Create stages
     ClientConnectionStage clientConnectionStage(server_fd);
     CommunicationStage communicationStage;
     CommandExecuteStage commandExecuteStage;
     DisconnecterStage disconnecterStage;
 
-    // Main loop for handling the pipeline
+    // Vector to hold client threads
+    std::vector<std::thread> clientThreads;
+
+    // Accept and manage multiple clients
     while (true) {
-        // Enqueue client connection
-        clientConnectionStage.enqueue([&clientConnectionStage, &communicationStage, &disconnecterStage, &commandExecuteStage]() {
-            int client_fd = clientConnectionStage.StartConnectingClients();
-            if (client_fd != -1) {
-                // Enqueue command processing for the connected client
-                communicationStage.enqueue([client_fd, &communicationStage, &disconnecterStage, &commandExecuteStage]() {
-                    while (true) {
-                        Command command = communicationStage.processClient(client_fd); // Get command from client
+        // Handle client connection through ClientConnectionStage
+        int client_fd = clientConnectionStage.StartConnectingClients();
 
-                        if (command == Command::Exit) {
-                            disconnecterStage.disconnectClient(client_fd); // Disconnect the client
-                            break; // Exit inner loop for this client
-                        }
+        if (client_fd < 0) {
+            std::cerr << "Failed to accept client connection." << std::endl;
+            continue; // Move on to the next iteration
+        }
 
-                        // Enqueue command execution
-                        commandExecuteStage.enqueue([client_fd, command, &commandExecuteStage]() {
-                            commandExecuteStage.processCommand(client_fd, command);
-                        });
-                    }
-                });
-            }
-        });
+        std::cout << "Accepted new client: " << client_fd << std::endl;
+
+        // Start a new thread to handle the client through all stages
+        clientThreads.emplace_back(handleClient, client_fd, std::ref(communicationStage), std::ref(commandExecuteStage), std::ref(disconnecterStage));
     }
 
+    // Cleanup (never reached in this example)
+    for (auto& t : clientThreads) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+    close(server_fd);
     return 0;
 }
-
 

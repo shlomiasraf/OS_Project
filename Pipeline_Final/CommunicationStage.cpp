@@ -2,11 +2,10 @@
 
 
 CommunicationStage::CommunicationStage() 
-    : ActiveObject(), // Initialize the base class
-      shouldStop(false) // Initialize shouldStop
-{
-    // Start the worker thread
-    workerThread = std::thread(&ActiveObject::workerFunction, this);
+    : 
+    shouldStop(false) // Initialize shouldStop
+{   
+ start();
 }
 
 CommunicationStage::~CommunicationStage() {
@@ -15,7 +14,6 @@ CommunicationStage::~CommunicationStage() {
         workerThread.join();
     }
 }
-
 Command CommunicationStage::processClient(int client_fd) {  
         std::string receivedData = handleReceiveData(client_fd);
         // Split the received data by newlines to handle multiple commands
@@ -26,13 +24,16 @@ Command CommunicationStage::processClient(int client_fd) {
        return command;
 }
 
-void CommunicationStage::enqueue(std::function<void()> request) {
-    {
-        std::unique_lock<std::mutex> lock(queueMutex);
-        requestQueue.push(request);
-    }
-    queueCondition.notify_one();
+Command CommunicationStage::enqueueProcessClient(int client_fd) {
+    Command result;
+    enqueue([this, client_fd, &result]() {
+        // Call the original processClient method
+        result = processClient(client_fd);
+    });
+    // Return the result (Note: this is only valid if you wait for the queue to process the task)
+    return result;
 }
+
 
 
 std::string CommunicationStage::handleReceiveData(int client_fd) {

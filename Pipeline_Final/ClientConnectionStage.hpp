@@ -12,7 +12,7 @@ public:
     ClientConnectionStage(int server_fd);
     ~ClientConnectionStage();
     int StartConnectingClients();
-    void enqueue(std::function<void()> request) override; // Override the enqueue method
+
 private:
     int server_fd;  // File descriptor for the server
     int setup_client_connection();

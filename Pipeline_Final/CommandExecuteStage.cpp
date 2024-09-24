@@ -3,28 +3,20 @@
 #include <sstream>
 #include <cstring>
 
-CommandExecuteStage::CommandExecuteStage() {
-    start(); // Start processing requests
-}
+CommandExecuteStage::CommandExecuteStage() {start();}
 
 CommandExecuteStage::~CommandExecuteStage() {
     stop(); // Ensure graceful shutdown
 }
 
-// Implementation of the enqueue method
-void CommandExecuteStage::enqueue(std::function<void()> request) {
-    {
-        std::unique_lock<std::mutex> lock(queueMutex);
-        requestQueue.push(std::move(request));
-    }
-    queueCondition.notify_one(); // Notify the worker that there's a new task
-}
-
-
 
 Command CommandExecuteStage::processCommand(int client_fd, Command command) {
-
-        switch (command) {
+     enqueue([client_fd, command, this]() {
+        switch (command) { 	     
+      	     case Command::Newgraph:
+                Newgraph(client_fd);
+                break;
+      	     
             case Command::Addedge:
                 AddEdge(client_fd);
                 break;
@@ -32,18 +24,21 @@ Command CommandExecuteStage::processCommand(int client_fd, Command command) {
             case Command::Removeedge:
                 RemoveEdge(client_fd);
                 break;
-            case Command::Newgraph:
-                Newgraph(client_fd);
-                break;
+     
             case Command::Prim:
             case Command::Kruskal:
                 getMSTAlgorithm(command, client_fd);
                 break;
+                
+             case Command::Exit:
+             	break;
+             
             default:
+            
                 std::cerr << "Invalid command from client " << client_fd << std::endl;
                 break;
-        }
-
+      		  }
+            });
     return command;
 }
 

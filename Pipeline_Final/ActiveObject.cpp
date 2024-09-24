@@ -25,7 +25,6 @@ void ActiveObject::stop() {
         workerThread.join(); // Wait for the worker thread to finish
     }
 }
-
 // Worker function for the thread
 void ActiveObject::workerFunction() {
     while (!shouldStop) {
@@ -34,7 +33,7 @@ void ActiveObject::workerFunction() {
         // Lock the queue for safe access
         {
             std::unique_lock<std::mutex> lock(queueMutex);
-            
+
             // Wait for a task or stop signal
             queueCondition.wait(lock, [&]() { return !requestQueue.empty() || shouldStop; });
 
@@ -42,16 +41,28 @@ void ActiveObject::workerFunction() {
             if (shouldStop && requestQueue.empty()) {
                 return;
             }
-
             // Retrieve the next task
             task = std::move(requestQueue.front());
             requestQueue.pop();
         }
 
-        // Execute the task
+        // Execute the task outside the lock to allow other threads to enqueue tasks
         if (task) {
-            task();
+            // Log which thread is executing the task
+            std::cout << "Thread ID: " << std::this_thread::get_id() << " is executing task." << std::endl;
+            task();  // Execute the task
         }
     }
 }
+
+// Enqueue method
+void ActiveObject::enqueue(std::function<void()> newTask) {
+    {
+        std::lock_guard<std::mutex> lock(queueMutex);
+        requestQueue.push(std::move(newTask));
+    }
+    queueCondition.notify_one(); // Notify one waiting thread
+}
+
+
 
