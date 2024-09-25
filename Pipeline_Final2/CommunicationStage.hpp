@@ -14,7 +14,6 @@ public:
     ~CommunicationStage();
     Command enqueueProcessClient(int client_fd);
 private:
-    Command processClient(int client_fd);
     void processCommand(int client_fd, Command command);
     std::string handleReceiveData(int client_fd);
     Command getCommandFromString(const std::string& commandStr);

@@ -9,29 +9,19 @@ CommunicationStage::~CommunicationStage() {
     }
 }
 
-Command CommunicationStage::processClient(int client_fd) {  
-        std::string receivedData = handleReceiveData(client_fd);
-        // Split the received data by newlines to handle multiple commands
-        std::istringstream stream(receivedData);
-        std::string commandStr;
-        std::getline(stream, commandStr); 
-        Command command = getCommandFromString(commandStr);
-        return command;
-}
 
 
 Command CommunicationStage::enqueueProcessClient(int client_fd) {
-    // Use a shared_ptr to manage the promise
-    auto commandPromise = std::make_shared<std::promise<Command>>();
-    std::future<Command> commandFuture = commandPromise->get_future();
-    // Enqueue a task that moves the promise into the lambda
-    enqueue([this, client_fd, commandPromise]() mutable {
-        Command result = processClient(client_fd);
-        commandPromise->set_value(result); // Set the result
-    });   
-    Command command = commandFuture.get();   // This blocks until the command is processed
-    processCommand(client_fd,command);
-    return command; 
+    std::string commandStr = handleReceiveData(client_fd);
+    Command command = getCommandFromString(commandStr);
+    // Enqueue the command processing request
+    enqueue([this, client_fd, command]() {
+        processCommand(client_fd, command);
+    });
+    // Notify the condition variable
+    queueCondition.notify_one(); // Notify the worker thread
+
+    return command; // Return the command for further processing if needed
 }
 
 std::string CommunicationStage::handleReceiveData(int client_fd) {
