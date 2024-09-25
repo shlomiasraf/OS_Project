@@ -25,28 +25,20 @@ Command CommunicationStage::enqueueProcessClient(int client_fd) {
 }
 
 std::string CommunicationStage::handleReceiveData(int client_fd) {
-    std::string commandStr;
-    char buffer[256];
-    ssize_t bytesRead;
+    std::string receivedData;
+    char buf[256];
+    int bytesRead;
+    // Read from the client socket
+    while ((bytesRead = recv(client_fd, buf, sizeof(buf)-1, 0)) > 0) {
+        buf[bytesRead] = '\0'; // Null-terminate the buffer
+        receivedData += buf;
 
-    // Read data from the client socket until newline is encountered
-    while (true) {
-        bytesRead = read(client_fd, buffer, sizeof(buffer) - 1);
-        if (bytesRead < 0) {
-            std::cerr << "Error reading from socket." << std::endl;
-            break;
-        } else if (bytesRead == 0) {
-            std::cerr << "Client disconnected." << std::endl;
-            break;
-        }
-        buffer[bytesRead] = '\0'; // Null-terminate the string
-        commandStr += buffer; // Append the buffer to the command string
-        if (commandStr.find('\n') != std::string::npos) {
-            break; // Break the loop if Enter is detected
+        // Check for end of input (e.g., a specific command, or a newline)
+        if (receivedData.find("\n") != std::string::npos) {
+            break; // End of command or structured input
         }
     }
-
-    return commandStr;
+    return receivedData;
 }
 
 Command CommunicationStage::getCommandFromString(const std::string& commandStr) {
@@ -135,10 +127,8 @@ void CommunicationStage::Newgraph(int client_fd) {
     int vertex, edges;
     std::string message = "Please enter the number of vertices and edges: \n";
     send(client_fd, message.c_str(), message.size(), 0);
-    fflush(stdout);
     char buf[256];
     std::string input;
-    memset(buf, 0, sizeof(buf));
     // Read vertices and edges
     int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
     if (nbytes <= 0) {
@@ -152,17 +142,12 @@ void CommunicationStage::Newgraph(int client_fd) {
         std::cerr << "Error parsing vertex/edges input.\n";
         return;
     }
-
     Graph graph(vertex, edges);
     GlobalGraph::getInstance().setGraph(graph);  // Set the global graph
-    memset(buf, 0, sizeof(buf));
     message = "Please enter the edges (u v weight): \n";
     send(client_fd, message.c_str(), message.size(), 0);
     fflush(stdout);
-    // Read edges
     for (int i = 0; i < edges; ++i) {
-        input.clear();
-        memset(buf, 0, sizeof(buf));
         nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
         if (nbytes <= 0) {
             std::cerr << "Error receiving edge data.\n";
@@ -176,7 +161,6 @@ void CommunicationStage::Newgraph(int client_fd) {
         if (!(edgeStream >> u >> v >> weight)) {
             message = "Invalid edge input format. Please retry.\n";
             send(client_fd, message.c_str(), message.size(), 0);
-            fflush(stdout);
             --i;  // Retry this edge
             continue;
         }

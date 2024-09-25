@@ -9,9 +9,8 @@ ActiveObject::~ActiveObject() {
 }
 
 void ActiveObject::start() {
-    shouldStop = false; // Reset stop flag
+    shouldStop = false;
     workerThread = std::thread(&ActiveObject::workerFunction, this); // Create thread
-    // Debugging output
     std::cout << "Thread created for " << typeid(*this).name() << " with ID: " 
               << workerThread.get_id() << std::endl; // Log thread ID and type
 }
@@ -27,7 +26,6 @@ void ActiveObject::stop() {
         workerThread.join(); // Wait for the worker thread to finish
     }
 }
-// Worker function for the thread
 void ActiveObject::workerFunction() {
     while (!shouldStop) {
         std::function<void()> task;
@@ -43,19 +41,27 @@ void ActiveObject::workerFunction() {
             if (shouldStop && requestQueue.empty()) {
                 return;
             }
+
             // Retrieve the next task
             task = std::move(requestQueue.front());
             requestQueue.pop();
-        }
+        } // The lock is released here
 
-        // Execute the task outside the lock to allow other threads to enqueue tasks
+        // Execute the task inside the lock to block other tasks
         if (task) {
-            // Log which thread is executing the task
-            std::cout << "Thread ID: " << std::this_thread::get_id() << " is executing task." << std::endl;
-            task();  // Execute the task
+            // Lock the queue again before executing the task
+            {
+                std::unique_lock<std::mutex> lock(queueMutex); // Re-locking
+
+                // Log which thread is executing the task
+                std::cout << "Thread ID: " << std::this_thread::get_id() << " is executing task." << std::endl;
+                task();  // Execute the task
+            } // The lock will be released here
         }
     }
 }
+
+
 
 // Enqueue method
 void ActiveObject::enqueue(std::function<void()> newTask) {

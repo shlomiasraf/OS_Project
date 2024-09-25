@@ -5,10 +5,10 @@ CC = g++
 CFLAGS = -Wall
 
 # Source files
-SRCS = ActiveObject.cpp ClientConnectionStage.cpp CommunicationStage.cpp Graph.cpp primMST.cpp kruskalMST.cpp CommandExecuteStage.cpp DisconnecterStage.cpp reactor.cpp main.cpp
+SRCS = ActiveObject.cpp ClientConnectionStage.cpp CommunicationStage.cpp Graph.cpp primMST.cpp kruskalMST.cpp   DisconnecterStage.cpp main.cpp
 
 # Header files
-HEADERS = ActiveObject.hpp ClientConnectionStage.hpp CommunicationStage.hpp Graph.hpp GlobalGraph.hpp primMST.hpp kruskalMST.hpp CommandExecuteStage.hpp DisconnecterStage.hpp reactor.hpp
+HEADERS = ActiveObject.hpp ClientConnectionStage.hpp CommunicationStage.hpp Graph.hpp GlobalGraph.hpp primMST.hpp kruskalMST.hpp DisconnecterStage.hpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
