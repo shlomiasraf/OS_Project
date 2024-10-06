@@ -15,43 +15,58 @@ Graph graph(0, 0);
 ThreadPool* poolPtr;       
 RequestHandling* requestHandlerPtr; 
 Reactor* reactorPtr;       
+bool flag = true;
 
-void signalHandler(int signum) {
+void signalHandler(int signum) 
+{
     if (!isShuttingDown) { // Check if not already shutting down
         std::cout << "Received signal " << signum << ". Shutting down..." << std::endl;
         isShuttingDown = 1; // Set the shutdown flag
     }
 }
-
 void handleClientRequests(int client_fd) {
+    std::string accumulatedData;  // To store data until we have a complete message
+    char buf[1024];
+
     while (true) {
+        if (isShuttingDown) {
+            break; // Exit if shutting down
+        }
+        if(flag)
         {
-
-            if (isShuttingDown) {
-                break; // Exit if shutting down
+            // Read data from the socket
+            int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+            if (nbytes <= 0) {
+                std::cerr << "Client disconnected or error receiving data from client." << std::endl;
+                close(client_fd);
+                return;  // Exit the function on error or disconnect
             }
+            // Null-terminate and accumulate data
+            buf[nbytes] = '\0';
+            accumulatedData += buf;
         }
-        char buf[1024];
-        int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
-        if (nbytes <= 0) {
-            std::cerr << "Client disconnected or error receiving data from client." << std::endl;
-            close(client_fd);
-            return;  // Exit the function on error or disconnect
+        // Process commands that end with a newline character
+        size_t pos;
+        while ((pos = accumulatedData.find('\n')) != std::string::npos) 
+        {
+            std::string commandStr = accumulatedData.substr(0, pos);
+            accumulatedData.erase(0, pos + 1); // Remove processed command
+
+            // Trim whitespace
+            commandStr.erase(commandStr.find_last_not_of(" \n\r\t") + 1);
+
+            // Parse the command from the string
+            Command command = requestHandlerPtr->getCommandFromString(commandStr);
+            flag = false;
+            // Enqueue the command processing
+            poolPtr->enqueue([client_fd, command]() 
+            {
+                std::cout << "Processing command from client: " << client_fd << std::endl;
+                // Call the request handler to process the command
+                requestHandlerPtr->processCommand(client_fd, command);
+                flag = true;
+            });
         }
-        buf[nbytes] = '\0'; // Null-terminate the string
-
-        std::string commandStr(buf);
-        commandStr.erase(commandStr.find_last_not_of(" \n\r\t") + 1); // Trim whitespace
-
-        // Parse the command from the string
-        Command command = requestHandlerPtr->getCommandFromString(commandStr);
-
-        // Enqueue the command processing
-        poolPtr->enqueue([client_fd, command]() {
-            std::cout << "Processing command from client: " << client_fd << std::endl;
-            // Call the request handler to process the command
-            requestHandlerPtr->processCommand(client_fd, command);
-        });
     }
 }
 
@@ -142,4 +157,3 @@ int main() {
 
     return 0;
 }
-
