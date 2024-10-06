@@ -23,9 +23,14 @@ ThreadPool::ThreadPool(size_t numThreads) : leaderIndex(0), stop(false) {
                 }
 
                 // If a task was processed, rotate the leader
-                if (task) {
+                if (task) 
+                {
+                     // Log which thread is executing the task
+                    std::cout << "Thread ID: " << std::this_thread::get_id() << " is executing task." << std::endl;
                     task(); // Execute the task
                     leaderIndex = (leaderIndex + 1) % workers.size(); // Rotate the leader
+                    // Log which thread is the leader.
+                    //std::cout << "Thread ID: " <<std::this_thread::get_id(this->workers.at(leaderIndex)) << " is now leader." << std::endl;
                 }
             }
         });
