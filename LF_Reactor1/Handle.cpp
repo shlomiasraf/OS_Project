@@ -7,8 +7,8 @@ class ConcreteHandle : public Handle {
 public:
     ConcreteHandle(int clientId) : clientId(clientId) {}
 
-    void process() override {
-        // Implement the logic to handle the client's request
+    void process() override 
+    {
         std::cout << "Processing request for client " << clientId << std::endl;
     }
 

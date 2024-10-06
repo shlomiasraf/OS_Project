@@ -3,7 +3,8 @@
 ThreadPool::ThreadPool(size_t numThreads) : leaderIndex(0), stop(false) {
     for (size_t i = 0; i < numThreads; ++i) {
         workers.emplace_back([this, i] {
-            while (true) {
+            while (true) 
+            {
                 std::function<void()> task;
 
                 {

@@ -63,6 +63,7 @@ void RequestHandling::RemoveEdge(int clientfd)
 
 void RequestHandling::Newgraph(int clientfd) 
 {
+
     int vertex, edges;
     std::string message = "Please enter the number of vertices and edges: \n";
     send(clientfd, message.c_str(), message.size(), 0);

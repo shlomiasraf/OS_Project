@@ -83,12 +83,19 @@ int stopReactor(void *reactor)
     free(reactorptr->funcs);
     free(reactorptr); return 0;
 }
-void runReactor(void* reactor_ptr) {
-    Reactor* reactor = (Reactor*) reactor_ptr;
-    while (true) {
-        int poll_count = poll(reactor->pfds, reactor->curr_index, -1); // Wait indefinitely for events
+void runReactor(void* reactor_ptr, std::atomic<bool>& shutdown_flag) {
+    Reactor* reactor = (Reactor*)reactor_ptr;
+    while (!shutdown_flag.load()) 
+    {
+        // Use a small timeout (e.g., 100 milliseconds) to check for shutdown
+        struct timespec timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_nsec = 100 * 1000; // 100 milliseconds
 
-        if (poll_count == -1) {
+        int poll_count = ppoll(reactor->pfds, reactor->curr_index, &timeout, nullptr); // Wait with timeout
+
+        if (poll_count == -1) 
+        {
             perror("poll");
             break;
         }

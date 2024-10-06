@@ -49,7 +49,6 @@ private:
     void Addedge(int clientfd);
     void RemoveEdge(int clientfd);
     void getMSTAlgorithm(Command type, int clientfd);
-	
     std::string receiveFullInput(int clientfd);
 };
 

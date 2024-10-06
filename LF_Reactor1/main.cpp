@@ -16,14 +16,8 @@ ThreadPool* poolPtr;
 RequestHandling* requestHandlerPtr; 
 Reactor* reactorPtr;       
 bool flag = true;
+std::atomic<bool> shutdown_flag(false);  // Atomic flag to manage shutdown state
 
-void signalHandler(int signum) 
-{
-    if (!isShuttingDown) { // Check if not already shutting down
-        std::cout << "Received signal " << signum << ". Shutting down..." << std::endl;
-        isShuttingDown = 1; // Set the shutdown flag
-    }
-}
 void handleClientRequests(int client_fd) {
     std::string accumulatedData;  // To store data until we have a complete message
     char buf[1024];
@@ -120,10 +114,21 @@ void* newConnectionHandler(int fd) {
     }
     return nullptr;
 }
+// Function to listen for shutdown commands within the main thread (without additional socket)
+void checkForShutdownCommand() {
+    std::string input;
+    while (!shutdown_flag.load()) {
+        std::getline(std::cin, input); // Get input from the console
+        if (input == "shutdown") {
+            std::cout << "Shutdown command received." << std::endl;
+            shutdown_flag.store(true); // Set the shutdown flag
+            break;
+        }
+    }
+}
 
-int main() {
-    signal(SIGINT, signalHandler); // Register signal handler for Ctrl+C
-
+int main() 
+{
     int server_fd = setup_server();
     Reactor* reactor = (Reactor*)startReactor();    
     reactorPtr = reactor;                           
@@ -135,19 +140,21 @@ int main() {
     std::cout << "Server listening on port " << PORT << std::endl;
 
     // Add the server_fd to the reactor using a function pointer
-    if (addFdToReactor(reactor, server_fd, newConnectionHandler) < 0) {
+    if (addFdToReactor(reactor, server_fd, newConnectionHandler) < 0) 
+    {
         std::cerr << "Failed to add server_fd to reactor" << std::endl;
         return -1;
     }
 
-   while (true) {
+    // Start a separate thread to listen for shutdown commands via the console
+    std::thread shutdownThread(checkForShutdownCommand);
+
+    // Main reactor loop
+    while (!shutdown_flag.load()) 
     {
-        if (isShuttingDown) {
-            break; // Exit the loop if shutting down
-        }
+        
+        runReactor(reactor,shutdown_flag); // Process events in the reactor
     }
-    runReactor(reactor); // Process events in the reactor
-}
 
     // Perform cleanup on shutdown
     std::cout << "Cleaning up resources..." << std::endl;
@@ -155,5 +162,9 @@ int main() {
     poolPtr->shutdown();   // Call the shutdown method of the thread pool
     close(server_fd);      // Close the server socket
 
+    // Join the shutdown thread
+    shutdownThread.join();
+
+    std::cout << "Server has shut down." << std::endl;
     return 0;
 }
