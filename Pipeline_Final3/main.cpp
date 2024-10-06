@@ -4,8 +4,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <atomic>  // For shutdown flag
 #include <mutex>
+#include <iostream>
+#include <poll.h>  // Include the necessary header for poll()
+#include <unistd.h> // Include for close()
+#include <atomic>   // For std::atomic
 #include "ClientConnectionStage.hpp"
 #include "CommunicationStage.hpp"
 #include "DisconnecterStage.hpp"
@@ -40,23 +43,7 @@ int setup_server() {
     return server_fd;
 }
 
-// Function to handle clients through all stages
-void handleClient(int client_fd, CommunicationStage& communicationStage, DisconnecterStage& disconnecterStage) {
-    std::cout << "Handling client " << client_fd << std::endl;
-    while (!shutdown_flag.load()) {  // Check shutdown flag in loop
-        // Process the command from the client
-        Command command = communicationStage.enqueueProcessClient(client_fd);
-
-        // Check if the command is 'Exit' or if shutdown is triggered
-        if (command == Command::Exit || shutdown_flag.load()) {
-            std::cout << "Disconnecting client: " << client_fd << std::endl;
-            disconnecterStage.disconnectClient(client_fd);
-            close(client_fd);  // Ensusre the socket is closed
-            break;  // Exit the loop to stop the thread
-        }
-    }
-    std::cout << "Finished handling client " << client_fd << std::endl;
-}
+// Main server loop already handles clients through polling
 
 int main() {
     int server_fd = setup_server();
@@ -66,7 +53,13 @@ int main() {
     CommunicationStage communicationStage;
     DisconnecterStage disconnecterStage;
 
-    std::vector<std::thread> clientThreads;
+    std::vector<pollfd> fds;
+
+    // Add the server file descriptor to the pollfd array
+    pollfd server_pollfd = {};
+    server_pollfd.fd = server_fd;
+    server_pollfd.events = POLLIN; // Monitor server socket for incoming connections
+    fds.push_back(server_pollfd);
 
     // Server thread to handle input for shutdown
     std::thread shutdown_thread([&]() {
@@ -82,30 +75,80 @@ int main() {
         }
     });
 
+    const int timeout_ms = 1000; // 1 second timeout for poll
+
     // Accept and manage multiple clients
-    while (!shutdown_flag.load()) {
-        int client_fd = clientConnectionStage.StartConnectingClients();
+    while (!shutdown_flag.load()) 
+    {
+        // Use poll to check for new connections or data from clients
+        int poll_count = poll(fds.data(), fds.size(), timeout_ms);
 
-        if (client_fd < 0) {
-            if (shutdown_flag.load()) break; // Exit if shutdown is triggered
-            std::cerr << "Failed to accept client connection." << std::endl;
-            continue;
+        if (poll_count == -1) {
+            perror("poll"); // Handle error during poll
+            break;
         }
-        std::cout << "Accepted new client: " << client_fd << std::endl;
 
-        clientThreads.emplace_back(handleClient, client_fd, std::ref(communicationStage), std::ref(disconnecterStage));
+        // Iterate over the pollfd array to check for events
+        for (size_t i = 0; i < fds.size(); ++i) {
+            if (fds[i].revents & POLLIN) {
+                if (fds[i].fd == server_fd) {
+                    // Server socket ready to accept new connections
+                    int client_fd = clientConnectionStage.StartConnectingClients();
+
+                    if (client_fd >= 0) {
+                        std::cout << "Accepted new client: " << client_fd << std::endl;
+
+                        // Add the new client socket to the pollfd array
+                        pollfd client_pollfd = {};
+                        client_pollfd.fd = client_fd;
+                        client_pollfd.events = POLLIN; // Monitor client socket for incoming data
+                        fds.push_back(client_pollfd);
+                    } else {
+                        std::cerr << "Failed to accept client connection." << std::endl;
+                    }
+                } else {
+                    // Data available on a client socket
+                    int client_fd = fds[i].fd;
+
+                    // Peek at the socket to check if there is data to be read
+                    char buffer[1];
+                    int peek_result = recv(client_fd, buffer, sizeof(buffer), MSG_PEEK);
+
+                    if (peek_result > 0) {
+                        // There is data available, process the command from the client
+                        Command command = communicationStage.enqueueProcessClient(client_fd);
+
+                        // Check if the command is 'Exit' or if shutdown is triggered
+                        if (command == Command::Exit || shutdown_flag.load()) {
+                            std::cout << "Disconnecting client: " << client_fd << std::endl;
+                            disconnecterStage.disconnectClient(client_fd);
+                            close(client_fd);  // Ensure the socket is closed
+
+                            // Remove the client socket from the pollfd array
+                            fds.erase(fds.begin() + i);
+                            --i;  // Adjust index after erasing
+                        }
+                    } else if (peek_result == 0) {
+                        // Connection was closed by the client
+                        std::cout << "Client disconnected: " << client_fd << std::endl;
+                        disconnecterStage.disconnectClient(client_fd);
+                        close(client_fd);
+
+                        // Remove the client socket from the pollfd array
+                        fds.erase(fds.begin() + i);
+                        --i;  // Adjust index after erasing
+                    } else {
+                        // Error occurred
+                        std::cerr << "Error peeking data on client socket: " << client_fd << std::endl;
+                    }
+                }
+            }
+        }
     }
 
     // Close server socket, no new clients are accepted after shutdown
     close(server_fd);
     std::cout << "Server stopped accepting new clients." << std::endl;
-
-    // Join all client threads to ensure they finish before shutdown
-    for (auto& t : clientThreads) {
-        if (t.joinable()) {
-            t.join();  // Wait for each thread to finish
-        }
-    }
 
     // Wait for shutdown thread to finish
     if (shutdown_thread.joinable()) {

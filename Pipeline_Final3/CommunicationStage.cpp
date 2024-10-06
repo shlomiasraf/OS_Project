@@ -1,5 +1,8 @@
 #include "CommunicationStage.hpp"
 
+
+bool stringFlag = true;
+
 CommunicationStage::CommunicationStage() {start();}
 
 CommunicationStage::~CommunicationStage() {
@@ -9,36 +12,40 @@ CommunicationStage::~CommunicationStage() {
     }
 }
 
-
-
 Command CommunicationStage::enqueueProcessClient(int client_fd) {
-    std::string commandStr = handleReceiveData(client_fd);
-    Command command = getCommandFromString(commandStr);
+    Command command;
+    if(stringFlag)
+    {   
+        std::string commandStr = handleReceiveData(client_fd);
+        command = getCommandFromString(commandStr);
+        stringFlag = false;
+    }
     // Enqueue the command processing request
-    enqueue([this, client_fd, command]() {
+    enqueue([this, client_fd, command]() 
+    {
         processCommand(client_fd, command);
+        stringFlag = true;
     });
     // Notify the condition variable
-    queueCondition.notify_one(); // Notify the worker thread
 
     return command; // Return the command for further processing if needed
 }
 
 std::string CommunicationStage::handleReceiveData(int client_fd) {
-    std::string receivedData;
-    char buf[256];
-    int bytesRead;
-    // Read from the client socket
-    while ((bytesRead = recv(client_fd, buf, sizeof(buf)-1, 0)) > 0) {
-        buf[bytesRead] = '\0'; // Null-terminate the buffer
-        receivedData += buf;
+        std::string receivedData;
+        char buf[256];
+        int bytesRead;
+        // Read from the client socket
+        while ((bytesRead = recv(client_fd, buf, sizeof(buf)-1, 0)) > 0) {
+            buf[bytesRead] = '\0'; // Null-terminate the buffer
+            receivedData += buf;
 
-        // Check for end of input (e.g., a specific command, or a newline)
-        if (receivedData.find("\n") != std::string::npos) {
-            break; // End of command or structured input
+            // Check for end of input (e.g., a specific command, or a newline)
+            if (receivedData.find("\n") != std::string::npos) {
+                break; // End of command or structured input
+            }
         }
-    }
-    return receivedData;
+        return receivedData;
 }
 
 Command CommunicationStage::getCommandFromString(const std::string& commandStr) {
@@ -65,7 +72,8 @@ Command CommunicationStage::getCommandFromString(const std::string& commandStr) 
 }
 
 void CommunicationStage::processCommand(int client_fd, Command command) {
-    switch (command) {
+    switch (command) 
+    {
         case Command::Newgraph:
             Newgraph(client_fd);
             break;
@@ -82,7 +90,6 @@ void CommunicationStage::processCommand(int client_fd, Command command) {
         case Command::Exit:
             break;
         default:
-            std::cerr << "Invalid command from client " << client_fd << std::endl;
             break;
     }
 }
