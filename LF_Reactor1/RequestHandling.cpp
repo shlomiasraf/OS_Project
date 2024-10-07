@@ -31,18 +31,26 @@ Command RequestHandling::getCommandFromString(const std::string &commandStr)
 
 void RequestHandling::Addedge(int clientfd) 
 {
-
-    int u, v, weight;
-    std::string message = "Please enter edge you wish to add\n";
+    std::string message = "Enter edge to add (i, j, weight): \n";
+    std::cout << std::flush;
     send(clientfd, message.c_str(), message.size(), 0);
-
-    recv(clientfd, (char*)&u, sizeof(u), 0);
-    recv(clientfd, (char*)&v, sizeof(v), 0);
-    recv(clientfd, (char*)&weight, sizeof(weight), 0);
-
+    char buf[256];
+    int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+    buf[nbytes] = '\0';
+    int u, v, weight;
+    std::istringstream edgeIss(buf);
+    edgeIss >> u >> v >> weight;
+    if(u <= graph.V && v <= graph.V)
     {
         graph.addEdge(u - 1, v - 1, weight);
+        message = "Edge was created successfully!\n";
     }
+    else
+    {
+        message = "Invalid edge\n";
+    }
+
+    send(clientfd, message.c_str(), message.size(), 0);
 }
 
 void RequestHandling::RemoveEdge(int clientfd) 
@@ -51,14 +59,22 @@ void RequestHandling::RemoveEdge(int clientfd)
     std::string message = "Enter edge to remove (i j): \n";
     std::cout << std::flush;
     send(clientfd, message.c_str(), message.size(), 0);
-
-    recv(clientfd, (char*)&i, sizeof(i), 0);
-    recv(clientfd, (char*)&j, sizeof(j), 0);
-
+    char buf[256];
+    int nbytes = recv(clientfd, buf, sizeof(buf) - 1, 0);
+    buf[nbytes] = '\0';
+    std::istringstream edgeIss(buf);
+    edgeIss >> i >> j;
+    if(i <= graph.V && j <= graph.V)
     {
-
         graph.removeEdge(i - 1, j - 1);
+        message = "Edge was removed successfully!\n";
     }
+    else
+    {
+        message = "Invalid edge\n";
+    }
+
+    send(clientfd, message.c_str(), message.size(), 0);
 }
 
 void RequestHandling::Newgraph(int clientfd) 

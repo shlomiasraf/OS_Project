@@ -40,7 +40,6 @@ void *startReactor() {
 int addFdToReactor(void *reactor, int fd, reactorFunc func)
 {   
   Reactor * reactorptr= (Reactor *)reactor;
-
     if(!reactorptr || !func) return -1;
 
    if (reactorptr->curr_index == reactorptr->fd_size) {
@@ -83,27 +82,29 @@ int stopReactor(void *reactor)
     free(reactorptr->funcs);
     free(reactorptr); return 0;
 }
-void runReactor(void* reactor_ptr, std::atomic<bool>& shutdown_flag) {
+void runReactor(void* reactor_ptr, std::atomic<bool>* isShuttingDown) 
+{
     Reactor* reactor = (Reactor*)reactor_ptr;
-    while (!shutdown_flag.load()) 
-    {
-        // Use a small timeout (e.g., 100 milliseconds) to check for shutdown
+    while (!isShuttingDown->load()) {
         struct timespec timeout;
         timeout.tv_sec = 0;
         timeout.tv_nsec = 100 * 1000; // 100 milliseconds
 
-        int poll_count = ppoll(reactor->pfds, reactor->curr_index, &timeout, nullptr); // Wait with timeout
+        int poll_count = ppoll(reactor->pfds, reactor->curr_index, &timeout, nullptr);
 
-        if (poll_count == -1) 
-        {
+        if (poll_count == -1) {
             perror("poll");
-            break;
+            break; // Exit the loop on error
         }
 
         for (int i = 0; i < reactor->curr_index; i++) {
-            if (reactor->pfds[i].revents & POLLIN) { // Check if there is data to read
+            if (reactor->pfds[i].revents & POLLIN) 
+            {
                 reactor->funcs[i](reactor->pfds[i].fd); // Call the corresponding handler function
             }
         }
     }
+
+    std::cout << "Reactor is shutting down." << std::endl;
+    // Perform any cleanup needed for the reactor here
 }

@@ -18,12 +18,12 @@ public:
     void enqueue(std::function<void()> task);
     void shutdown();
 private:
+    std::atomic<bool> stop;
+    size_t leaderIndex; // Change to size_t
     std::vector<std::thread> workers;
     std::queue<std::function<void()>> tasks;
     std::mutex queueMutex;
     std::condition_variable condition;
-    std::atomic<bool> stop;
-    size_t leaderIndex; // Change to size_t
 };
 
 #endif // THREADPOOL_HPP

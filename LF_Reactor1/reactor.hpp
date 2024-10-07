@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/select.h>
 #include <atomic>
+#include <csignal>
 
 typedef void * (*reactorFunc)(int fd);
 
@@ -24,7 +25,7 @@ typedef struct {
     int addFdToReactor(void * reactor, int fd, reactorFunc func) ; 
     int stopReactor(void * reactor);
     int removeFdFromReactor(void * reactor, int fd);
-void runReactor(void* reactor, std::atomic<bool>& shutdown_flag);
+    void runReactor(void* reactor, std::atomic<bool>* isShuttingDown);
  
 
 #endif // REACTOR_HPP
