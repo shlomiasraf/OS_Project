@@ -17,8 +17,6 @@ const int MAX_CLIENTS = 10; // Maximum number of clients to accept
 std::mutex shutdown_mutex;
 std::atomic<bool> shutdown_flag(false); // Global shutdown flag
 
-
-
 int setup_client_connection(int server_fd) 
 {
     // Accept a new client connection
@@ -163,10 +161,8 @@ int main() {
             }
         }
     }
-
     // Close server socket and stop accepting new clients
     close(server_fd);
-
     // Wait for shutdown thread to finish
     if (shutdown_thread.joinable()) {
         shutdown_thread.join();

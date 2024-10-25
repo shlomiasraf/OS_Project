@@ -1,7 +1,6 @@
 #include "ActiveObject.hpp"
 #include <atomic>
 #include <future>
-
 #include "MSTInfo.hpp"
 class Pipeline{
     
@@ -36,11 +35,21 @@ class Pipeline{
          }
      }
     };
-    std::vector<ActiveObject> executors; // Declare the vector without initialization here
-    std::condition_variable taskCondition;
-    std::atomic<int> remainingTasks;
-    std::mutex taskMutex;
-public:
-    Pipeline(); // Constructor
+    
+    std::vector<std::unique_ptr<ActiveObject>> executors; // Use smart pointers
+    
+    std::mutex mtx1, mtx2, mtx3, mtx4, mtx5,deletetion,coutMutex;
+    std::condition_variable cv1, cv2, cv3, cv4, cv5;
+    std::atomic<int> completedTasks{0};
+    Pipeline(); //  private Constructor
+    static Pipeline * instance;
+    void threadSafePrint(const std::string& message);
+    static std::mutex creation;
+  
+    public:
+    static Pipeline& getInstance();
+    Pipeline(const Pipeline&) = delete;
+    Pipeline& operator=(const Pipeline&) = delete;
+    ~Pipeline();
     void run(Graph& graph,int clientfd,std::string type);    
 };

@@ -12,8 +12,6 @@ public:
 
 private:
     Graph graph;
-    Pipeline pipe;
-
         std::mutex resultMutex; // Mutex to protect access to the graph
     void AddEdge(int client_fd);
     void RemoveEdge(int client_fd);

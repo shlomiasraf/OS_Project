@@ -1,69 +1,124 @@
 #include "Pipeline.hpp"
-Pipeline::Pipeline() : executors(6) { }
+
+Pipeline* Pipeline::instance = nullptr;
+std::mutex Pipeline::creation;
+
+Pipeline& Pipeline::getInstance() {
+    std::unique_lock<std::mutex> lock(creation);
+    if (instance == nullptr) {
+        instance = new Pipeline(); // Assign new instance if null
+    }
+    return *instance; // Return the instance
+}
+
+Pipeline::Pipeline() {
+    executors.reserve(6); // Reserve space for 6 pointers
+
+    // Emplace back to create instances of ActiveObject
+    for (int i = 0; i < 6; ++i) {
+        executors.emplace_back(std::make_unique<ActiveObject>());
+    }
+
+    // Start each executor
+    for (auto& executor : executors) {
+        executor->start();
+    }
+}
+
+Pipeline::~Pipeline() {
+    // Cleanup code if needed (e.g., stop executors)
+    for (auto& executor : executors) {
+        executor->stop(); // Assuming you have a stop method
+    }
+}
+
+void Pipeline::threadSafePrint(const std::string& message) {
+    std::lock_guard<std::mutex> lock(coutMutex);
+    std::cout << message << std::endl;
+}
 
 void Pipeline::run(Graph& graph, int clientfd, std::string type) {
+    MSTResult result({}, 0, 0, 0);
+    // Create a mutex for this specific client
+    std::mutex clientMutex;
+    std::condition_variable clientCv;
+    std::atomic<int> completedTasks{0};
 
-  // Assign references to each executor
-    ActiveObject& calculateMSTExecutor = executors[0];
-    ActiveObject& calculateTotalWeightExecutor = executors[1];
-    ActiveObject& calculateLongestDistanceExecutor = executors[2];
-    ActiveObject& calculateAverageDistanceExecutor = executors[3];
-    ActiveObject& calculateShortestDistanceExecutor = executors[4];
-    ActiveObject& sendInfoExecutor = executors[5];
+    // Notify and increment
+    auto notifyAndIncrement = [&]() {
+        std::lock_guard<std::mutex> lock(clientMutex);
+        completedTasks++;
+        clientCv.notify_all();
+    };
 
-    // Start all ActiveObject threads using a loop
-    for (auto& executor : executors) {
-        executor.start();
-    }
-    MSTResult result({}, 0, 0, 0);  // Initialize with an empty adjacency list   
-    // Task 1: Calculate MST using Kruskal or Prim
-    calculateMSTExecutor.enqueue([&graph,clientfd,&result, type, &calculateTotalWeightExecutor,&calculateAverageDistanceExecutor,
-     &calculateLongestDistanceExecutor, &calculateShortestDistanceExecutor, &sendInfoExecutor]() {
-        if (type == "Kruskal") {
-            std::cout << "Calculating MST Using Kruskal Algo..." << std::endl;
-            KruskalMST kruskalInstance;
-            result.mst = kruskalInstance.kruskalFunction(graph);
-        } 
-        else {
-            std::cout << "Calculating MST Using Prim Algo..." << std::endl;
-            PrimMST primInstance;
-            result.mst = primInstance.primFunction(graph);
+    // Vector to hold task completion status
+    std::vector<bool> taskCompletionStatus(6, false); // Assuming 6 tasks
+
+    auto passTask = [&](std::function<void()> taskFunction, int dependencyIndex = -1) {
+        if (dependencyIndex != -1) {
+            std::unique_lock<std::mutex> lock(clientMutex);
+            clientCv.wait(lock, [&] { return completedTasks.load() > dependencyIndex; });
         }
-        std::cout << "Finish task 1" << std::endl;
 
-        // Enqueue Task 2 after Task 1 finishes
-        calculateTotalWeightExecutor.enqueue([&result, &calculateAverageDistanceExecutor, &calculateLongestDistanceExecutor, &calculateShortestDistanceExecutor, &sendInfoExecutor, clientfd]() {
-            result.totalWeight = MSTInfo::calculateTotalWeight(result.mst, result.mst.size());
-            std::cout << "Finish task 2" << std::endl;
+        // Directly call the task function instead of using std::async
+        taskFunction();
+        notifyAndIncrement();
+    };
 
-            // Enqueue Task 3 after Task 2 finishes
-            calculateAverageDistanceExecutor.enqueue([&result, &calculateLongestDistanceExecutor, &calculateShortestDistanceExecutor, &sendInfoExecutor, clientfd]() {
-                result.averageDistance = MSTInfo::calculateAverageDistance(result.totalWeight, result.mst.size());
-                std::cout << "Finish task 3" << std::endl;
-
-                // Enqueue Task 4 after Task 3 finishes
-                calculateLongestDistanceExecutor.enqueue([&result, &calculateShortestDistanceExecutor, &sendInfoExecutor, clientfd]() {
-                    result.longestDistance = MSTInfo::findLongestDistance(result.mst, result.mst.size());
-                    std::cout << "Finish task 4" << std::endl;
-
-                    // Enqueue Task 5 after Task 4 finishes
-                    calculateShortestDistanceExecutor.enqueue([&result, &sendInfoExecutor, clientfd]() { 
-                        result.shortestDistance = MSTInfo::calculateShortestDistance(result.mst, result.mst.size());
-                        std::cout << "Finish task 5" << std::endl;
-
-                        // Enqueue Task 6 after Task 5 finishes
-                        sendInfoExecutor.enqueue([result, clientfd]() { 
-                            result.sendMSTDetails(clientfd);
-                            std::cout << "Finish task 6" << std::endl;
-                        });
-                    });
-                });
-            });
-        });
+    // Task 1: Calculate MST
+    passTask([&, type]() {
+        try {
+            std::string message;
+            if (type == "Kruskal") {
+                message = "Calculating MST Using Kruskal Algo...";
+                threadSafePrint(message);
+                KruskalMST kruskalInstance;
+                result.mst = kruskalInstance.kruskalFunction(graph);
+            } else {
+                message = "Calculating MST Using Prim Algo...";
+                threadSafePrint(message);
+                PrimMST primInstance;
+                result.mst = primInstance.primFunction(graph);
+            }
+            message = "Finish task 1";
+            threadSafePrint(message);
+        } catch (const std::exception &e) {
+            std::cerr << "Error in Task 1: " << e.what() << std::endl;
+        }
     });
-    // Stop all ActiveObject threads after processing using a loop
-    for (auto& executor : executors) {
-        executor.stop();
-    }
-    std::cout << "Pipe Finish\n";
+
+    // Task 2: Calculate Total Weight
+    passTask([&]() {
+        result.totalWeight = MSTInfo::calculateTotalWeight(result.mst, result.mst.size());
+        std::string message = "Finish task 2";
+        threadSafePrint(message);
+    }, 0);
+
+    // Task 3: Calculate Average Distance
+    passTask([&]() {
+        result.averageDistance = MSTInfo::calculateAverageDistance(result.totalWeight, result.mst.size());
+        std::string message = "Finish task 3";
+        threadSafePrint(message);
+    }, 1);
+
+    // Task 4: Calculate Longest Distance
+    passTask([&]() {
+        result.longestDistance = MSTInfo::findLongestDistance(result.mst, result.mst.size());
+        std::string message = "Finish task 4";
+        threadSafePrint(message);
+    }, 2);
+
+    // Task 5: Calculate Shortest Distance
+    passTask([&]() {
+        result.shortestDistance = MSTInfo::calculateShortestDistance(result.mst, result.mst.size());
+        std::string message = "Finish task 5";
+        threadSafePrint(message);
+    }, 3);
+
+    // Task 6: Send Info
+    passTask([&, clientfd]() {
+        result.sendMSTDetails(clientfd);
+        std::string message = "Finish task 6";
+        threadSafePrint(message);
+    }, 4);
 }

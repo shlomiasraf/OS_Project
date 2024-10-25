@@ -126,11 +126,12 @@ void CommandExecute::Newgraph(int client_fd) {
 
 void CommandExecute::getMSTAlgorithm(Command type, int client_fd) {
     std::string message;
-    if(graph.V<2){
+        if(graph.V<2){
          message = "Cannot Compute MST on Graphs that vertics number lower than 2.\n";
          send(client_fd, message.c_str(), message.size(), 0);
          return;
     }
+    Pipeline& pipe = Pipeline::getInstance();
     if (type == Command::Prim) {
         pipe.run(graph,client_fd,"prim");
     } else if (type == Command::Kruskal) {
