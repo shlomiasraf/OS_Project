@@ -9,7 +9,7 @@
 class CommandExecute {
 public:
      Command processCommand(int client_fd, Command command);
-
+    Pipeline& pipe = Pipeline::getInstance();
 private:
     Graph graph;
         std::mutex resultMutex; // Mutex to protect access to the graph

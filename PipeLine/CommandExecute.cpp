@@ -36,36 +36,50 @@ Command CommandExecute::processCommand(int client_fd, Command command) {
 
 void CommandExecute::AddEdge(int client_fd) {
 
-    int u, v, weight;
-    std::string message = "Please enter edge you wish to add (u v weight): \n";
+     std::string message = "Enter edge to add (i, j, weight): \n";
+    std::cout << std::flush;
     send(client_fd, message.c_str(), message.size(), 0);
-
-    if (recv(client_fd, (char*)&u, sizeof(u), 0) <= 0 ||
-        recv(client_fd, (char*)&v, sizeof(v), 0) <= 0 ||
-        recv(client_fd, (char*)&weight, sizeof(weight), 0) <= 0) {
-        std::cerr << "Error receiving edge data.\n";
-        return;
+    char buf[256];
+    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+    buf[nbytes] = '\0';
+    int u, v, weight;
+    std::istringstream edgeIss(buf);
+    edgeIss >> u >> v >> weight;
+    if(u <= graph.V && v <= graph.V)
+    {
+        graph.addEdge(u - 1, v - 1, weight);
+        message = "Edge was created successfully!\n";
     }
-    
-    graph.addEdge(u, v, weight);
-    message = "Edge added successfully.\n";
+    else
+    {
+        message = "Invalid edge\n";
+    }
+
     send(client_fd, message.c_str(), message.size(), 0);
 }
 
 void CommandExecute::RemoveEdge(int client_fd) {
-    int u, v;
-    std::string message = "Enter edge to remove (u v): \n";
+    int i, j;
+    std::string message = "Enter edge to remove (i j): \n";
+    std::cout << std::flush;
     send(client_fd, message.c_str(), message.size(), 0);
-
-    if (recv(client_fd, (char*)&u, sizeof(u), 0) <= 0 ||
-        recv(client_fd, (char*)&v, sizeof(v), 0) <= 0) {
-        std::cerr << "Error receiving edge data.\n";
-        return;
+    char buf[256];
+    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+    buf[nbytes] = '\0';
+    std::istringstream edgeIss(buf);
+    edgeIss >> i >> j;
+    if(i <= graph.V && j <= graph.V)
+    {
+        graph.removeEdge(i - 1, j - 1);
+        message = "Edge was removed successfully!\n";
     }
-    graph.removeEdge(u - 1, v - 1);
-    message = "Edge removed successfully.\n";
+    else
+    {
+        message = "Invalid edge\n";
+    }
+
     send(client_fd, message.c_str(), message.size(), 0);
-}    
+}
 
 void CommandExecute::Newgraph(int client_fd) {
     int vertex, edges;
@@ -131,7 +145,6 @@ void CommandExecute::getMSTAlgorithm(Command type, int client_fd) {
          send(client_fd, message.c_str(), message.size(), 0);
          return;
     }
-    Pipeline& pipe = Pipeline::getInstance();
     if (type == Command::Prim) {
         pipe.run(graph,client_fd,"prim");
     } else if (type == Command::Kruskal) {

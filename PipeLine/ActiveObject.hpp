@@ -47,5 +47,6 @@ private:
     std::mutex mutex_;
     std::condition_variable condition_;
     std::queue<std::function<void()>> tasks_;
+
 };
 #endif // ACTIVEOBJECT_HPP

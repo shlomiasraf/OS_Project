@@ -12,21 +12,22 @@ Pipeline& Pipeline::getInstance() {
 }
 
 Pipeline::Pipeline() {
-    executors.reserve(6); // Reserve space for 6 pointers
-
     // Emplace back to create instances of ActiveObject
     for (int i = 0; i < 6; ++i) {
         executors.emplace_back(std::make_unique<ActiveObject>());
     }
-
     // Start each executor
     for (auto& executor : executors) {
         executor->start();
     }
 }
+void Pipeline::cleanup() {
+    std::unique_lock<std::mutex> lock(creation);
+    delete instance;
+    instance = nullptr;
+}
 
 Pipeline::~Pipeline() {
-    // Cleanup code if needed (e.g., stop executors)
     for (auto& executor : executors) {
         executor->stop(); // Assuming you have a stop method
     }
@@ -120,5 +121,11 @@ void Pipeline::run(Graph& graph, int clientfd, std::string type) {
         result.sendMSTDetails(clientfd);
         std::string message = "Finish task 6";
         threadSafePrint(message);
-    }, 4);
+    }, 4);\
+    
+       // Wait for all tasks to complete
+    {
+        std::unique_lock<std::mutex> lock(clientMutex);
+        clientCv.wait(lock, [&] { return completedTasks.load() == 6; }); // Wait until all tasks are completed
+    }
 }

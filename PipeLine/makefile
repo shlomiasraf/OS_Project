@@ -1,6 +1,6 @@
 # Compiler
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -pthread -g  # Compiler flags with debug information
+CXXFLAGS = -Wall -Wextra -std=c++17 -pthread -g -fprofile-arcs -ftest-coverage  # Compiler flags with debug information and coverage support
 
 # Source files
 SRCS = ActiveObject.cpp Graph.cpp main.cpp Pipeline.cpp \
@@ -22,7 +22,7 @@ $(TARGET): $(SRCS)
 
 # Clean up the build
 clean:
-	rm -f $(TARGET) *.o
+	rm -f $(TARGET) *.o *.gcno *.gcda  # Clean coverage files as well
 
 # Phony targets
 .PHONY: all clean

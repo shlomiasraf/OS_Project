@@ -14,8 +14,7 @@ void ActiveObject::stop() {
     {
         std::lock_guard<std::mutex> lock(mutex_); // Protect the task queue
         stopRequested_ = true; // Set stop request flag
-            condition_.notify_all(); // Notify the worker thread to wake up if waiting
-
+        condition_.notify_all(); // Notify the worker thread to wake up if waiting
     }
     if (worker_.joinable()) {
         worker_.join(); // Wait for the worker thread to finish

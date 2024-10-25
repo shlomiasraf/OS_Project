@@ -45,11 +45,12 @@ class Pipeline{
     static Pipeline * instance;
     void threadSafePrint(const std::string& message);
     static std::mutex creation;
-  
+    
     public:
     static Pipeline& getInstance();
     Pipeline(const Pipeline&) = delete;
     Pipeline& operator=(const Pipeline&) = delete;
     ~Pipeline();
+    void cleanup();
     void run(Graph& graph,int clientfd,std::string type);    
 };

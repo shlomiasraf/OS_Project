@@ -55,7 +55,6 @@ Command getCommandFromString(const std::string& commandStr) {
     return Command::Invalid;
 }
 
-
 int setup_server() {
     int server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (server_fd == -1) {
@@ -103,7 +102,6 @@ void handle_client(int client_fd) {
             }
             break; // Exit the loop if client disconnects or an error occurs
         }
-     //   std::cout << "Received from client " << client_fd << ": " << buffer << std::endl;
         Command command=getCommandFromString(buffer);
         commandExecutor.processCommand(client_fd,command);
         if(command==Command::Exit){
@@ -115,7 +113,7 @@ void handle_client(int client_fd) {
 
 int main() {
     int server_fd = setup_server();
-
+    std::vector<std::thread> client_threads;
     // Server thread to handle input for shutdown
     std::thread shutdown_thread([&]() {
         std::string input;
@@ -156,13 +154,22 @@ int main() {
             int client_fd = setup_client_connection(server_fd);
 
             if (client_fd >= 0) {
-                std::thread client_thread(handle_client, client_fd);
-                client_thread.detach(); // Detach the thread to allow it to run independently
+            client_threads.emplace_back(handle_client, client_fd); // Store the thread                client_thread.detach(); // Detach the thread to allow it to run independently
+         
             }
         }
     }
+    Pipeline& pipe = Pipeline::getInstance();
+    pipe.cleanup();
     // Close server socket and stop accepting new clients
     close(server_fd);
+
+    // After all clients are processed, join the threads before exiting
+    for (auto& t : client_threads) {
+    if (t.joinable()) {
+        t.join(); // Wait for each thread to finish
+      }
+    }
     // Wait for shutdown thread to finish
     if (shutdown_thread.joinable()) {
         shutdown_thread.join();
