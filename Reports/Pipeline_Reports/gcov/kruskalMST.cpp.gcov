@@ -1,0 +1,211 @@
+        -:    0:Source:kruskalMST.cpp
+        -:    1:
+        -:    2:#include "kruskalMST.hpp"
+        -:    3:
+        -:    4:// Utility function to find the parent of a node
+function _Z4findRSt6vectorIiSaIiEEi called 9 returned 100% blocks executed 100%
+        9:    5:int find(std::vector<int>& parent, int i) {
+        9:    6:    if (parent[i] == i)
+call    0 returned 100%
+branch  1 taken 89% (fallthrough)
+branch  2 taken 11%
+        8:    7:        return i;
+        1:    8:    return parent[i] = find(parent, parent[i]);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:    9:}
+        -:   10:
+        -:   11:// Function to perform union of two sets (by rank)
+function _Z5UnionRSt6vectorIiSaIiEES2_ii called 2 returned 100% blocks executed 88%
+        2:   12:void Union(std::vector<int>& parent, std::vector<int>& rank, int x, int y) {
+        2:   13:    int rootX = find(parent, x);
+call    0 returned 100%
+        2:   14:    int rootY = find(parent, y);
+call    0 returned 100%
+        -:   15:
+        2:   16:    if (rank[rootX] < rank[rootY]) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 50% (fallthrough)
+branch  3 taken 50%
+        1:   17:        parent[rootX] = rootY;
+call    0 returned 100%
+        1:   18:    } else if (rank[rootX] > rank[rootY]) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 0% (fallthrough)
+branch  3 taken 100%
+    #####:   19:        parent[rootY] = rootX;
+call    0 never executed
+        -:   20:    } else {
+        1:   21:        parent[rootY] = rootX;
+call    0 returned 100%
+        1:   22:        rank[rootX]++;
+call    0 returned 100%
+        -:   23:    }
+        2:   24:}
+        -:   25:
+        -:   26:// Function to perform Kruskal's algorithm
+function _ZN10KruskalMST15kruskalFunctionER5Graph called 1 returned 100% blocks executed 69%
+        1:   27:std::vector<std::vector<std::pair<int, int>>> KruskalMST::kruskalFunction(Graph& graph) {
+        1:   28:    int V = graph.V; 
+        1:   29:    std::vector<std::vector<int>> edgeList;  // Store edges in {src, dest, weight} format
+call    0 returned 100%
+        -:   30:
+        -:   31:    // Step 1: Extract edges from the adjacency matrix or list
+        4:   32:    for (int u = 0; u < V; u++) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+        6:   33:        for (int v = u + 1; v < V; v++) {
+branch  0 taken 50%
+branch  1 taken 50% (fallthrough)
+        3:   34:            if (graph.adjList[u][v] != 0) {  // Adjust based on adjacency matrix or list
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+        9:   35:                edgeList.push_back({u, v, graph.adjList[u][v]});
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+call    9 never executed
+        -:   36:            }
+        -:   37:        }
+        -:   38:    }
+        -:   39:
+        -:   40:    // Step 2: Sort edges based on weight
+        1:   41:    std::sort(edgeList.begin(), edgeList.end(),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+function _ZZN10KruskalMST15kruskalFunctionER5GraphENKUlRKSt6vectorIiSaIiEES6_E_clES6_S6_ called 4 returned 100% blocks executed 100%
+        4:   42:              [](const std::vector<int>& a, const std::vector<int>& b) {
+        4:   43:                  return a[2] < b[2];
+call    0 returned 100%
+call    1 returned 100%
+        -:   44:              });
+        -:   45:
+        -:   46:    // Allocate memory for subsets (for Union-Find)
+        2:   47:    std::vector<int> parent(V);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   48:    std::vector<int> rank(V, 0);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        -:   49:
+        -:   50:    // Create V subsets (single elements)
+        4:   51:    for (int v = 0; v < V; v++) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+        3:   52:        parent[v] = v;
+call    0 returned 100%
+        -:   53:    }
+        -:   54:
+        1:   55:    std::vector<std::vector<int>> result;  // Store the resulting MST
+call    0 returned 100%
+        1:   56:    int e = 0;  // Number of edges in MST
+        -:   57:
+        -:   58:    // Step 3: Pick the smallest edge and check if it forms a cycle
+        3:   59:    for (const auto& edge : edgeList) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 100%
+branch  6 taken 0% (fallthrough)
+        3:   60:        if (e >= V - 1) break;  // Stop if MST has V-1 edges
+branch  0 taken 33% (fallthrough)
+branch  1 taken 67%
+        -:   61:
+        2:   62:        int u = edge[0];
+call    0 returned 100%
+        2:   63:        int v = edge[1];
+call    0 returned 100%
+        2:   64:        int weight = edge[2];
+call    0 returned 100%
+        -:   65:
+        2:   66:        int setU = find(parent, u);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        2:   67:        int setV = find(parent, v);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   68:
+        -:   69:        // If including this edge doesn't cause a cycle
+        2:   70:        if (setU != setV) {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        4:   71:            result.push_back({u, v, weight});
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        2:   72:            e++;
+        2:   73:            Union(parent, rank, setU, setV);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   74:        }
+        -:   75:    }
+        -:   76:
+        -:   77:    // Convert result to adjacency list format for return
+        1:   78:    std::vector<std::vector<std::pair<int, int>>> mstAdjList(V);  // No need for static
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   79:
+        3:   80:    for (const auto& edge : result) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 67%
+branch  6 taken 33% (fallthrough)
+        2:   81:        int u = edge[0];
+call    0 returned 100%
+        2:   82:        int v = edge[1];
+call    0 returned 100%
+        2:   83:        int weight = edge[2];
+call    0 returned 100%
+        2:   84:        mstAdjList[u].emplace_back(v, weight);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        2:   85:        mstAdjList[v].emplace_back(u, weight);  // Since the graph is undirected
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:   86:    }
+        2:   87:    return mstAdjList;  // Return by value, modern C++ will optimize this
+        1:   88:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed
+call    8 never executed

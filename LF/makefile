@@ -30,14 +30,15 @@ $(TARGET): $(OBJS)
 # Generate code coverage report using gcov
 coverage: $(TARGET)
 	./$(TARGET)
-	gcov -b -o . ThreadPool.cpp Graph.cpp LFCompute.cpp CommandExecute.cpp kruskalMST.cpp MSTInfo.cpp primMST.cpp | \
-	grep -v '/usr/include/' | \
-	grep -v 'bits/' | \
-	grep -v 'ext/'
+	# Generate coverage reports, excluding unwanted directories and files
+	gcov -b -r -o . $(SRCS) | grep -v '/usr/include/' | grep -v 'bits/' | grep -v 'ext/' > filtered_coverage.txt
+
+	# Display filtered coverage report
+	cat filtered_coverage.txt
 
 # Clean up the build
 clean:
-	rm -f $(TARGET) $(OBJS) *.gcno *.gcda *.gcov
+	rm -f $(TARGET) $(OBJS) *.gcno *.gcda *.gcov filtered_coverage.txt
 
 # Phony targets
 .PHONY: all clean coverage

@@ -1,0 +1,155 @@
+        -:    0:Source:LFCompute.hpp
+        -:    1:#include "ThreadPool.hpp"
+        -:    2:#include "MSTInfo.hpp"
+        -:    3:#include "kruskalMST.hpp"
+        -:    4:#include "primMST.hpp"
+        -:    5:#include <atomic>
+        -:    6:#include <future>
+        -:    7:class LFCompute{
+        -:    8: struct MSTResult {
+        -:    9:    
+        -:   10:    std::vector<std::vector<std::pair<int, int>>> mst;  // The adjacency list representation of the MST
+        -:   11:    double totalWeight;        // The total weight of the MST
+        -:   12:    double shortestDistance;   // Shortest distance between any two nodes in the MST
+        -:   13:    double averageDistance;    // Average distance between all nodes in the MST
+        -:   14:    double longestDistance;
+        -:   15:    // Add more fields as necessary for other metrics
+        -:   16:
+        -:   17:    // Constructor for easy initialization
+function _ZN9LFCompute9MSTResultC2ERKSt6vectorIS1_ISt4pairIiiESaIS3_EESaIS5_EEddd called 2 returned 100% blocks executed 100%
+        2:   18:    MSTResult(const std::vector<std::vector<std::pair<int, int>>>& mstData, double totalW, double shortestDist, double avgDist)
+        2:   19:        : mst(mstData), totalWeight(totalW), shortestDistance(shortestDist), averageDistance(avgDist) {}
+call    0 returned 100%
+        -:   20:
+        -:   21:    // You can also add functions to calculate certain metrics if needed
+function _ZNK9LFCompute9MSTResult14sendMSTDetailsEi called 2 returned 100% blocks executed 47%
+        2:   22:    void sendMSTDetails(int clientfd) const {
+        2:   23:    std::string message;
+call    0 returned 100%
+        -:   24:    
+        -:   25:    // Construct the message with MST details
+        2:   26:    message += "MST Details:\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        2:   27:    message += "Total Weight: " + std::to_string(totalWeight) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        2:   28:    message += "Longest Distance: " + std::to_string(longestDistance) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        2:   29:    message += "Shortest Distance: " + std::to_string(shortestDistance) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        2:   30:    message += "Average Distance: " + std::to_string(averageDistance) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        -:   31:
+        -:   32:    // Send the message over the socket
+        2:   33:    ssize_t bytes_sent = send(clientfd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        2:   34:    if (bytes_sent == -1) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:   35:        std::cerr << "Error sending MST details to client " << clientfd << std::endl;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+        -:   36:         }
+        2:   37:     }
+call    0 returned 100%
+call    1 never executed
+        -:   38:    };
+        -:   39:    static LFCompute * instance;
+        -:   40:    std::atomic<bool> taskCompleted{false};
+        -:   41:    std::mutex clientMutex;
+        -:   42:    std::condition_variable clientCv;
+        -:   43:    std::condition_variable taskCondition;
+        -:   44:    ThreadPool pool;
+        -:   45:    std::mutex coutMutex;
+        -:   46:    static std::mutex creation;
+        -:   47:
+        -:   48:public:
+        -:   49:    LFCompute();
+        -:   50:    static LFCompute& getInstance();
+        -:   51:    LFCompute(const LFCompute&) = delete;
+        -:   52:    LFCompute& operator=(const LFCompute&) = delete;
+        -:   53:    void Compute(Graph& graph, int clientfd, std::string type);
+        -:   54:    void threadSafePrint(const std::string &message);
+        -:   55:    void cleanup(); 
+        -:   56:    ~LFCompute();
+        -:   57:};

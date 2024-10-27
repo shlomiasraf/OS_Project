@@ -1,0 +1,455 @@
+        -:    0:Source:CommandExecute.cpp
+        -:    1:#include "CommandExecute.hpp"
+        -:    2:#include <iostream>
+        -:    3:#include <sstream>
+        -:    4:#include <cstring>
+        -:    5:
+function _ZN14CommandExecute14processCommandEi7Command called 8 returned 100% blocks executed 100%
+        8:    6:Command CommandExecute::processCommand(int client_fd, Command command) {
+        8:    7:        switch (command) { 	     
+branch  0 taken 12%
+branch  1 taken 12%
+branch  2 taken 12%
+branch  3 taken 25%
+branch  4 taken 12%
+branch  5 taken 25%
+        1:    8:      	     case Command::Newgraph:
+        1:    9:                Newgraph(client_fd);
+call    0 returned 100%
+        1:   10:                break;
+        -:   11:      	     
+        1:   12:            case Command::Addedge:
+        1:   13:                AddEdge(client_fd);
+call    0 returned 100%
+        1:   14:                break;
+        -:   15:            
+        1:   16:            case Command::Removeedge:
+        1:   17:                RemoveEdge(client_fd);
+call    0 returned 100%
+        1:   18:                break;
+        -:   19:     
+        2:   20:            case Command::Prim:
+        -:   21:            case Command::Kruskal:
+        2:   22:                getMSTAlgorithm(command, client_fd);
+call    0 returned 100%
+        2:   23:                break;
+        -:   24:                
+        1:   25:             case Command::Exit:
+        -:   26:                //std::cout<<"The client choose to disconnect.\n";
+        1:   27:             	break;
+        -:   28:
+        2:   29:            default:
+        -:   30:            
+        2:   31:                std::cerr << "Invalid command frtrom client " << client_fd << std::endl;
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        2:   32:                break;
+        -:   33:      		  }
+        8:   34:    return command;
+        -:   35:}
+        -:   36:
+function _ZN14CommandExecute7AddEdgeEi called 1 returned 100% blocks executed 68%
+        1:   37:void CommandExecute::AddEdge(int client_fd) {
+        -:   38:
+        1:   39:     std::string message = "Enter edge to add (i, j, weight): \n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   40:    std::cout << std::flush;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   41:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        -:   42:    char buf[256];
+        1:   43:    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   44:    buf[nbytes] = '\0';
+        -:   45:    int u, v, weight;
+        1:   46:    std::istringstream edgeIss(buf);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        1:   47:    edgeIss >> u >> v >> weight;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+        1:   48:    if(u <= graph.V && v <= graph.V)
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+        -:   49:    {
+        1:   50:        graph.addEdge(u - 1, v - 1, weight);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   51:        message = "Edge was created successfully!\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   52:    }
+        -:   53:    else
+        -:   54:    {
+    #####:   55:        message = "Invalid edge\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   56:    }
+        -:   57:
+        1:   58:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        1:   59:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+call    3 never executed
+        -:   60:
+function _ZN14CommandExecute10RemoveEdgeEi called 1 returned 100% blocks executed 67%
+        1:   61:void CommandExecute::RemoveEdge(int client_fd) {
+        -:   62:    int i, j;
+        1:   63:    std::string message = "Enter edge to remove (i j): \n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   64:    std::cout << std::flush;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   65:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        -:   66:    char buf[256];
+        1:   67:    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   68:    buf[nbytes] = '\0';
+        1:   69:    std::istringstream edgeIss(buf);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        1:   70:    edgeIss >> i >> j;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        1:   71:    if(i <= graph.V && j <= graph.V)
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+        -:   72:    {
+        1:   73:        graph.removeEdge(i - 1, j - 1);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   74:        message = "Edge was removed successfully!\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   75:    }
+        -:   76:    else
+        -:   77:    {
+    #####:   78:        message = "Invalid edge\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   79:    }
+        -:   80:
+        1:   81:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        1:   82:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 never executed
+call    3 never executed
+        -:   83:
+function _ZN14CommandExecute8NewgraphEi called 1 returned 100% blocks executed 67%
+        1:   84:void CommandExecute::Newgraph(int client_fd) {
+        -:   85:    int vertex, edges;
+        1:   86:        std::lock_guard<std::mutex> lock(resultMutex);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   87:
+        1:   88:    std::string message = "Please enter the number of vertices and edges: \n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   89:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        1:   90:    fflush(stdout);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   91:    char buf[256];
+        1:   92:    std::string input;
+call    0 returned 100%
+        1:   93:    memset(buf, 0, sizeof(buf));
+        -:   94:    // Read vertices and edges
+        1:   95:    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   96:    if (nbytes <= 0) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:   97:        std::cerr << "Error receiving data from client.\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   98:        return;
+        -:   99:    }
+        1:  100:    buf[nbytes] = '\0';
+        1:  101:    input = buf;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:  102:    std::istringstream iss(input);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:  103:    if (!(iss >> vertex >> edges)) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+branch  9 taken 0% (fallthrough)
+branch 10 taken 100%
+    #####:  104:        std::cerr << "Error parsing vertex/edges input.\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  105:        return;
+        -:  106:    }
+        1:  107:    graph = Graph(vertex, edges);   
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+        1:  108:    memset(buf, 0, sizeof(buf));
+        1:  109:    message = "Please enter the edges (u v weight): \n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:  110:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        1:  111:    fflush(stdout);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  112:    // Read edges
+        4:  113:    for (int i = 0; i < edges; ++i) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+        3:  114:        input.clear();
+call    0 returned 100%
+        3:  115:        memset(buf, 0, sizeof(buf));
+        3:  116:        nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        3:  117:        if (nbytes <= 0) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:  118:            std::cerr << "Error receiving edge data.\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  119:            return;
+        -:  120:        }
+        3:  121:        buf[nbytes] = '\0';
+        3:  122:        input = buf;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:  123:
+        -:  124:        int u, v, weight;
+        3:  125:        std::istringstream edgeStream(input);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       3*:  126:        if (!(edgeStream >> u >> v >> weight)) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+branch 12 taken 0% (fallthrough)
+branch 13 taken 100%
+    #####:  127:            message = "Invalid edge input format. Please retry.\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  128:            send(client_fd, message.c_str(), message.size(), 0);
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  129:            fflush(stdout);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  130:            --i;  // Retry this edge
+    #####:  131:            continue;
+        -:  132:        }
+        -:  133:
+        3:  134:       graph.addEdge(u - 1, v - 1, weight);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        3:  135:    }
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 never executed
+        -:  136:
+        1:  137:    message = "Graph created successfully.\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:  138:    send(client_fd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        1:  139:}
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0%
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0%
+call   12 never executed
+call   13 never executed
+call   14 never executed
+call   15 never executed
+        -:  140:
+function _ZN14CommandExecute15getMSTAlgorithmE7Commandi called 2 returned 100% blocks executed 51%
+        2:  141:void CommandExecute::getMSTAlgorithm(Command type, int client_fd) {
+        2:  142:    std::string message;
+call    0 returned 100%
+        2:  143:        if(graph.V<2){
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:  144:         message = "Cannot Compute MST on Graphs that vertics number lower than 2.\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  145:         send(client_fd, message.c_str(), message.size(), 0);
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+    #####:  146:         return;
+        -:  147:    }
+        2:  148:    if (type == Command::Prim) {
+branch  0 taken 50% (fallthrough)
+branch  1 taken 50%
+        3:  149:        pipe.run(graph,client_fd,"prim");
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        1:  150:    } else if (type == Command::Kruskal) {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        3:  151:        pipe.run(graph,client_fd,"Kruskal");
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        -:  152:    } else {
+    #####:  153:        message = "Invalid MST command.\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:  154:        send(client_fd, message.c_str(), message.size(), 0);
+call    0 never executed
+call    1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed (throw)
+        -:  155:    }
+        2:  156:}
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+call    3 never executed
+        -:  157:
+        -:  158:
