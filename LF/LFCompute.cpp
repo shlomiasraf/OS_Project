@@ -3,7 +3,7 @@ LFCompute* LFCompute::instance = nullptr;
 std::mutex LFCompute::creation;
 
 
-LFCompute::LFCompute() { }
+LFCompute::LFCompute() : pool(10){};
 
 LFCompute &LFCompute::getInstance()
 {
@@ -18,11 +18,11 @@ LFCompute &LFCompute::getInstance()
 
 void LFCompute::Compute(Graph &graph, int clientfd, std::string type) {
     MSTResult result({}, 0, 0, 0);  
-    
-
     // Enqueue a single task that performs all the operations sequentially
     pool.enqueue([this, &graph, clientfd, type,  result = std::move(result)]() mutable {
         std::string message;
+        //message="abcdef";
+      //dd  threadSafePrint(message);
 
         // Task: Calculate MST using Kruskal or Prim
         if (type == "Kruskal") {
@@ -38,7 +38,7 @@ void LFCompute::Compute(Graph &graph, int clientfd, std::string type) {
         }
         message = "MST calculation complete.";
         threadSafePrint(message);
-
+    
         // Task: Calculate total weight
         result.totalWeight = MSTInfo::calculateTotalWeight(result.mst, result.mst.size());
         message = "Total weight calculation complete.";

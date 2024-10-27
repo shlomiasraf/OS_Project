@@ -4,7 +4,6 @@
 #include "primMST.hpp"
 #include <atomic>
 #include <future>
-#define NumThreads 10
 class LFCompute{
  struct MSTResult {
     
@@ -42,9 +41,10 @@ class LFCompute{
     std::mutex clientMutex;
     std::condition_variable clientCv;
     std::condition_variable taskCondition;
-    ThreadPool pool{NumThreads};
+    ThreadPool pool;
     std::mutex coutMutex;
     static std::mutex creation;
+
 public:
     LFCompute();
     static LFCompute& getInstance();

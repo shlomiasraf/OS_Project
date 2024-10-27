@@ -28,7 +28,7 @@ public:
 
     void enqueue(std::function<void()> task);
     void shutdown();
-
+    
 private:
     void initializeWorkers(size_t numThreads);
     void workerThread(size_t i);
@@ -37,6 +37,7 @@ private:
     std::queue<std::function<void()>> tasks;
     std::mutex queueMutex;
     std::condition_variable condition;
+    std::condition_variable leaderCondition;
     size_t leaderIndex;
     std::atomic_bool stop;
 };

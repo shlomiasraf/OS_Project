@@ -25,7 +25,6 @@ Command CommandExecute::processCommand(int client_fd, Command command) {
              case Command::Exit:
              	break;
             default:     
-                std::cerr << "Invalid command from client " << client_fd << std::endl;
                 break;
       		  }
     return command;
@@ -52,7 +51,7 @@ void CommandExecute::AddEdge(int client_fd) {
         message = "Invalid edge\n";
     }
 
-   // send(client_fd, message.c_str(), message.size(), 0);
+    send(client_fd, message.c_str(), message.size(), 0);
 }
 
 void CommandExecute::RemoveEdge(int client_fd) {
@@ -75,7 +74,7 @@ void CommandExecute::RemoveEdge(int client_fd) {
         message = "Invalid edge\n";
     }
 
-    //send(client_fd, message.c_str(), message.size(), 0);
+    send(client_fd, message.c_str(), message.size(), 0);
 }
 
 void CommandExecute::Newgraph(int client_fd) {

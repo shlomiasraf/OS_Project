@@ -31,37 +31,3 @@ void Graph::removeEdge(int src, int dest)
     adjList[src][dest] = 0;
     adjList[dest][src] = 0;  // For undirected graph
 }
-// Serialize the graph data into a string
-std::string Graph::serialize() const 
-{
-    std::stringstream ss;
-    ss << V << " " << edges << "\n";
-    for (int i = 0; i < V; ++i) 
-    {
-        for (int j = 0; j < V; ++j) 
-        {
-            if (adjList[i][j] != 0) 
-            {
-                ss << i+1 << " " << j+1 << " " << adjList[i][j] << "\n";  // Add each edge
-            }
-        }
-    }
-    return ss.str();
-}
-
-// Deserialize a graph from a string
-Graph Graph::deserialize(const std::string& data) 
-{
-    std::stringstream ss(data);
-    int V, edges;
-    ss >> V >> edges;
-    Graph graph(V, edges);
-
-    int src, dest, weight;
-    while (ss >> src >> dest >> weight) 
-    {
-        graph.addEdge(src-1, dest-1, weight);
-    }
-
-    return graph;
-}

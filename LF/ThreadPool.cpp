@@ -22,7 +22,7 @@ void ThreadPool::workerThread(size_t i) {
                 return stop || !tasks.empty();
             });
 
-            if (stop && tasks.empty()) return; // Proper exit condition
+            if (stop && tasks.empty()) return; 
 
             // Only the current leader processes the task
             if (i == leaderIndex) {
@@ -68,6 +68,6 @@ void ThreadPool::enqueue(std::function<void()> task) {
     {
         std::unique_lock<std::mutex> lock(queueMutex);
         tasks.emplace(std::move(task)); // Add the task to the queue    
-     condition.notify_one(); // Notify one worker thread to wake up
+       condition.notify_all(); // Notify one worker thread to wake up
     }
 }
