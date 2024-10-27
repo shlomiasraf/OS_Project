@@ -23,27 +23,27 @@ void ThreadPool::workerThread(size_t i) {
             });
 
             if (stop && tasks.empty()) return; // Proper exit condition
-            // No task to process
-            if (tasks.empty()) continue; // Retry loop if no tasks are available
+
             // Only the current leader processes the task
             if (i == leaderIndex) {
-                task = std::move(tasks.front());
-                tasks.pop();
+                if (!tasks.empty()) {
+                    task = std::move(tasks.front());
+                    tasks.pop();
+                }
+                // Update the leader index for the next task
+                leaderIndex = (leaderIndex + 1) % workers.size(); 
             }
         }
 
         // Process the task outside of the lock
         if (task) {
-            std::cout << "Leader Index: " << leaderIndex << 
+            std::cout << "Leader Index: " << i << 
                 ", Thread ID: " << std::this_thread::get_id() 
                 << " is executing task." << std::endl;
-            leaderIndex = (leaderIndex + 1) % workers.size(); 
             task(); // Execute the task
         }
     }
 }
-
-
 
 // Destructor for automatic shutdown
 ThreadPool::~ThreadPool() {
@@ -53,9 +53,8 @@ ThreadPool::~ThreadPool() {
 void ThreadPool::shutdown() {
     {
         std::unique_lock<std::mutex> lock(queueMutex);
-        stop = true;
-        
-    condition.notify_all(); // Wake up all threads to stop
+        stop = true; 
+        condition.notify_all(); // Wake up all threads to stop
     }
     // Join all threads after stopping the task queue
     for (std::thread &worker : workers) {
@@ -68,8 +67,7 @@ void ThreadPool::shutdown() {
 void ThreadPool::enqueue(std::function<void()> task) {
     {
         std::unique_lock<std::mutex> lock(queueMutex);
-        tasks.emplace(std::move(task)); // Add the task to the queue
-    
-    condition.notify_one(); // Notify one worker thread to wake up
+        tasks.emplace(std::move(task)); // Add the task to the queue    
+     condition.notify_one(); // Notify one worker thread to wake up
     }
 }

@@ -6,8 +6,8 @@
 #include <future>
 #define NumThreads 10
 class LFCompute{
-    
  struct MSTResult {
+    
     std::vector<std::vector<std::pair<int, int>>> mst;  // The adjacency list representation of the MST
     double totalWeight;        // The total weight of the MST
     double shortestDistance;   // Shortest distance between any two nodes in the MST
@@ -37,11 +37,21 @@ class LFCompute{
          }
      }
     };
+    static LFCompute * instance;
+    std::atomic<bool> taskCompleted{false};
+    std::mutex clientMutex;
+    std::condition_variable clientCv;
     std::condition_variable taskCondition;
-    std::mutex taskMutex;
     ThreadPool pool{NumThreads};
-    
+    std::mutex coutMutex;
+    static std::mutex creation;
 public:
     LFCompute();
-    void Compute(Graph& graph, int clientfd, std::string type); 
+    static LFCompute& getInstance();
+    LFCompute(const LFCompute&) = delete;
+    LFCompute& operator=(const LFCompute&) = delete;
+    void Compute(Graph& graph, int clientfd, std::string type);
+    void threadSafePrint(const std::string &message);
+    void cleanup(); 
+    ~LFCompute();
 };

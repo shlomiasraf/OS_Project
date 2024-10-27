@@ -13,7 +13,7 @@ public:
 
 private:
     Graph graph;
-    LFCompute LF;
+    LFCompute& LF = LFCompute::getInstance();
     std::mutex resultMutex; // Mutex to protect access to the graph
     void AddEdge(int client_fd);
     void RemoveEdge(int client_fd);

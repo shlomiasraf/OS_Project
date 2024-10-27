@@ -95,7 +95,7 @@ void handle_client(int client_fd) {
         ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
         if (bytes_read <= 0) {
             if (bytes_read == 0) {
-                std::cout << "Client " << client_fd << " disconnected." << std::endl;
+//                std::cout << "Client " << client_fd << " disconnected." << std::endl;
             } else {
                 std::cerr << "Error reading from client " << client_fd << ": " << strerror(errno) << std::endl;
             }
@@ -109,10 +109,9 @@ void handle_client(int client_fd) {
     }
     close(client_fd); // Close the client socket
 }
-
 int main() {
-
     int server_fd = setup_server();
+    std::vector<std::thread> client_threads;
     // Server thread to handle input for shutdown
     std::thread shutdown_thread([&]() {
         std::string input;
@@ -151,14 +150,25 @@ int main() {
         if (fds[0].revents & POLLIN) {
             // Accept and manage multiple clients
             int client_fd = setup_client_connection(server_fd);
+
             if (client_fd >= 0) {
-                std::thread client_thread(handle_client, client_fd);
-                client_thread.detach(); // Detach the thread to allow it to run independently
+            client_threads.emplace_back(handle_client, client_fd); // Store the thread                client_thread.detach(); // Detach the thread to allow it to run independently
+         
             }
         }
     }
+    
+    LFCompute& LF = LFCompute::getInstance();
+    LF.cleanup();
     // Close server socket and stop accepting new clients
     close(server_fd);
+
+    // After all clients are processed, join the threads before exiting
+    for (auto& t : client_threads) {
+    if (t.joinable()) {
+        t.join(); // Wait for each thread to finish
+      }
+    }
     // Wait for shutdown thread to finish
     if (shutdown_thread.joinable()) {
         shutdown_thread.join();

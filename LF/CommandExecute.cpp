@@ -23,10 +23,9 @@ Command CommandExecute::processCommand(int client_fd, Command command) {
                 getMSTAlgorithm(command, client_fd);
                 break;
              case Command::Exit:
-                std::cout<<"The client choose to disconnect.\n";
              	break;
-            default:           
-                std::cerr << "Invalid command frtrom client " << client_fd << std::endl;
+            default:     
+                std::cerr << "Invalid command from client " << client_fd << std::endl;
                 break;
       		  }
     return command;
@@ -34,40 +33,55 @@ Command CommandExecute::processCommand(int client_fd, Command command) {
 
 void CommandExecute::AddEdge(int client_fd) {
 
+    std::string message = "Enter edge to add (i, j, weight): \n";
+    std::cout << std::flush;
+    send(client_fd, message.c_str(), message.size(), 0);
+    char buf[256];
+    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+    buf[nbytes] = '\0';
     int u, v, weight;
-    std::string message = "Please enter edge you wish to add (u v weight): \n";
-    send(client_fd, message.c_str(), message.size(), 0);
-
-    if (recv(client_fd, (char*)&u, sizeof(u), 0) <= 0 ||
-        recv(client_fd, (char*)&v, sizeof(v), 0) <= 0 ||
-        recv(client_fd, (char*)&weight, sizeof(weight), 0) <= 0) {
-        std::cerr << "Error receiving edge data.\n";
-        return;
+    std::istringstream edgeIss(buf);
+    edgeIss >> u >> v >> weight;
+    if(u <= graph.V && v <= graph.V)
+    {
+        graph.addEdge(u - 1, v - 1, weight);
+        message = "Edge was created successfully!\n";
     }
-    
-    graph.addEdge(u, v, weight);
-    message = "Edge added successfully.\n";
-    send(client_fd, message.c_str(), message.size(), 0);
+    else
+    {
+        message = "Invalid edge\n";
+    }
+
+   // send(client_fd, message.c_str(), message.size(), 0);
 }
 
 void CommandExecute::RemoveEdge(int client_fd) {
-    int u, v;
-    std::string message = "Enter edge to remove (u v): \n";
+    int i, j;
+    std::string message = "Enter edge to remove (i j): \n";
+    std::cout << std::flush;
     send(client_fd, message.c_str(), message.size(), 0);
-
-    if (recv(client_fd, (char*)&u, sizeof(u), 0) <= 0 ||
-        recv(client_fd, (char*)&v, sizeof(v), 0) <= 0) {
-        std::cerr << "Error receiving edge data.\n";
-        return;
+    char buf[256];
+    int nbytes = recv(client_fd, buf, sizeof(buf) - 1, 0);
+    buf[nbytes] = '\0';
+    std::istringstream edgeIss(buf);
+    edgeIss >> i >> j;
+    if(i <= graph.V && j <= graph.V)
+    {
+        graph.removeEdge(i - 1, j - 1);
+        message = "Edge was removed successfully!\n";
     }
-    graph.removeEdge(u - 1, v - 1);
-    message = "Edge removed successfully.\n";
-    send(client_fd, message.c_str(), message.size(), 0);
-}    
+    else
+    {
+        message = "Invalid edge\n";
+    }
+
+    //send(client_fd, message.c_str(), message.size(), 0);
+}
 
 void CommandExecute::Newgraph(int client_fd) {
     int vertex, edges;
     std::lock_guard<std::mutex> lock(resultMutex);
+
     std::string message = "Please enter the number of vertices and edges: \n";
     send(client_fd, message.c_str(), message.size(), 0);
     fflush(stdout);
@@ -80,6 +94,7 @@ void CommandExecute::Newgraph(int client_fd) {
         std::cerr << "Error receiving data from client.\n";
         return;
     }
+    message = "Enter edges to add (i, j, weight): \n";
     buf[nbytes] = '\0';
     input = buf;
     std::istringstream iss(input);
@@ -113,6 +128,7 @@ void CommandExecute::Newgraph(int client_fd) {
             --i;  // Retry this edge
             continue;
         }
+
        graph.addEdge(u - 1, v - 1, weight);
     }
 
