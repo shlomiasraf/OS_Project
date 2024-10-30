@@ -1,6 +1,6 @@
 # Compiler
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17 -pthread -g -fprofile-arcs -ftest-coverage # Compiler flags with debug & coverage info
+CXXFLAGS = -Wall -Wextra -std=c++17 -pthread -g # Compiler flags with debug information
 
 # Source files
 SRCS = ActiveObject.cpp Graph.cpp main.cpp Pipeline.cpp \
@@ -26,19 +26,10 @@ $(TARGET): $(OBJS)
 # Compile source files into object files
 %.o: %.cpp $(HEADERS)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Generate code coverage report using gcov
-coverage: $(TARGET)
-	./$(TARGET)
-	# Generate coverage reports, excluding unwanted directories and files
-	gcov -b -r -o . $(SRCS) | grep -v '/usr/include/' | grep -v 'bits/' | grep -v 'ext/' > filtered_coverage.txt
-
-	# Display filtered coverage report
-	cat filtered_coverage.txt
-
+	
 # Clean up the build
 clean:
-	rm -f $(TARGET) $(OBJS) *.gcno *.gcda *.gcov filtered_coverage.txt
+	rm -f $(TARGET) *.o
 
 # Phony targets
-.PHONY: all clean coverage
+.PHONY: all clean
