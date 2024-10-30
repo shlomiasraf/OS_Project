@@ -1,0 +1,101 @@
+File 'ActiveObject.cpp'
+Lines executed:72.73% of 33
+Branches executed:81.25% of 32
+Taken at least once:46.88% of 32
+Calls executed:64.29% of 42
+Creating 'ActiveObject.cpp.gcov'
+
+File 'Graph.cpp'
+Lines executed:41.18% of 34
+Branches executed:18.75% of 64
+Taken at least once:9.38% of 64
+Calls executed:32.73% of 55
+Creating 'Graph.cpp.gcov'
+
+File 'Graph.hpp'
+No executable lines
+No branches
+No calls
+Removing 'Graph.hpp.gcov'
+
+File 'main.cpp'
+Lines executed:79.81% of 104
+Branches executed:66.25% of 160
+Taken at least once:40.00% of 160
+Calls executed:58.00% of 100
+Creating 'main.cpp.gcov'
+
+File 'CommandExecute.hpp'
+No executable lines
+No branches
+No calls
+Removing 'CommandExecute.hpp.gcov'
+
+File 'kruskalMST.hpp'
+No executable lines
+No branches
+No calls
+Removing 'kruskalMST.hpp.gcov'
+
+File 'primMST.hpp'
+No executable lines
+No branches
+No calls
+Removing 'primMST.hpp.gcov'
+
+File 'MSTAlgo.hpp'
+Lines executed:50.00% of 6
+No branches
+Calls executed:0.00% of 4
+Creating 'MSTAlgo.hpp.gcov'
+
+File 'Pipeline.cpp'
+Lines executed:100.00% of 79
+Branches executed:98.04% of 102
+Taken at least once:53.92% of 102
+Calls executed:80.92% of 152
+Creating 'Pipeline.cpp.gcov'
+
+File 'Pipeline.hpp'
+Lines executed:92.31% of 13
+Branches executed:86.36% of 44
+Taken at least once:43.18% of 44
+Calls executed:68.63% of 51
+Creating 'Pipeline.hpp.gcov'
+
+File 'MSTFactory.hpp'
+Lines executed:75.00% of 8
+Branches executed:100.00% of 7
+Taken at least once:57.14% of 7
+Calls executed:75.00% of 8
+Creating 'MSTFactory.hpp.gcov'
+
+File 'CommandExecute.cpp'
+Lines executed:88.89% of 99
+Branches executed:91.03% of 156
+Taken at least once:49.36% of 156
+Calls executed:80.91% of 110
+Creating 'CommandExecute.cpp.gcov'
+
+File 'kruskalMST.cpp'
+Lines executed:100.00% of 36
+Branches executed:100.00% of 42
+Taken at least once:61.90% of 42
+Calls executed:87.50% of 56
+Creating 'kruskalMST.cpp.gcov'
+
+File 'MSTInfo.cpp'
+Lines executed:98.53% of 68
+Branches executed:100.00% of 60
+Taken at least once:78.33% of 60
+Calls executed:97.26% of 73
+Creating 'MSTInfo.cpp.gcov'
+
+File 'primMST.cpp'
+Lines executed:88.89% of 27
+Branches executed:78.26% of 46
+Taken at least once:52.17% of 46
+Calls executed:75.56% of 45
+Creating 'primMST.cpp.gcov'
+
+Lines executed:86.00% of 507

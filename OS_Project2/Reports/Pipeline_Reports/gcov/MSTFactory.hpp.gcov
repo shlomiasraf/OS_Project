@@ -1,0 +1,41 @@
+        -:    0:Source:MSTFactory.hpp
+        -:    1:// MSTFactory.hpp
+        -:    2:#ifndef MSTFACTORY_HPP
+        -:    3:#define MSTFACTORY_HPP
+        -:    4:
+        -:    5:#include "MSTAlgo.hpp"
+        -:    6:#include "primMST.hpp"
+        -:    7:#include "kruskalMST.hpp"
+        -:    8:#include <memory>
+        -:    9:
+        -:   10:class MSTFactory {
+        -:   11:public:
+function _ZN10MSTFactory6createE7Command called 4 returned 100% blocks executed 85%
+        4:   12:    static std::unique_ptr<MSTAlgo> create(Command commandType) {
+        4:   13:        switch (commandType) {
+branch  0 taken 50%
+branch  1 taken 50%
+branch  2 taken 0%
+        2:   14:            case Command::Prim:
+        2:   15:                return std::make_unique<PrimMST>();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+call    5 never executed
+        2:   16:            case Command::Kruskal:
+        2:   17:                return std::make_unique<KruskalMST>();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+    #####:   18:            default:
+    #####:   19:                return nullptr;
+call    0 never executed
+        -:   20:        }
+        -:   21:    }
+        -:   22:};
+        -:   23:
+        -:   24:#endif

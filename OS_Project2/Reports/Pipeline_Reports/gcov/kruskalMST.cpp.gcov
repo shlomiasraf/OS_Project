@@ -1,0 +1,168 @@
+        -:    0:Source:kruskalMST.cpp
+        -:    1:
+        -:    2:#include "kruskalMST.hpp"
+        -:    3:
+        -:    4:
+        -:    5:// Function to perform Kruskal's algorithm
+function _ZN10KruskalMST7FindMSTER5Graph called 2 returned 100% blocks executed 69%
+        2:    6:std::vector<std::vector<std::pair<int, int>>> KruskalMST::FindMST(Graph &graph) {
+        2:    7:    int V = graph.V; 
+        2:    8:    std::vector<std::vector<int>> edgeList;  // Store edges in {src, dest, weight} format
+call    0 returned 100%
+        -:    9:
+        -:   10:    // Step 1: Extract edges from the adjacency matrix or list
+        8:   11:    for (int u = 0; u < V; u++) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+       12:   12:        for (int v = u + 1; v < V; v++) {
+branch  0 taken 50%
+branch  1 taken 50% (fallthrough)
+        6:   13:            if (graph.adjList[u][v] != 0) {  // Adjust based on adjacency matrix or list
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+       18:   14:                edgeList.push_back({u, v, graph.adjList[u][v]});
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+call    5 returned 100%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0% (throw)
+call    8 returned 100%
+call    9 never executed
+        -:   15:            }
+        -:   16:        }
+        -:   17:    }
+        -:   18:
+        -:   19:    // Step 2: Sort edges based on weight
+        2:   20:    std::sort(edgeList.begin(), edgeList.end(),
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+function _ZZN10KruskalMST7FindMSTER5GraphENKUlRKSt6vectorIiSaIiEES6_E_clES6_S6_ called 9 returned 100% blocks executed 100%
+        9:   21:              [](const std::vector<int>& a, const std::vector<int>& b) {
+        9:   22:                  return a[2] < b[2];
+call    0 returned 100%
+call    1 returned 100%
+        -:   23:              });
+        -:   24:
+        -:   25:    // Allocate memory for subsets (for Union-Find)
+        4:   26:    std::vector<int> parent(V);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        2:   27:    std::vector<int> rank(V, 0);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        -:   28:
+        -:   29:    // Create V subsets (single elements)
+        8:   30:    for (int v = 0; v < V; v++) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+        6:   31:        parent[v] = v;
+call    0 returned 100%
+        -:   32:    }
+        -:   33:
+        2:   34:    std::vector<std::vector<int>> result;  // Store the resulting MST
+call    0 returned 100%
+        2:   35:    int e = 0;  // Number of edges in MST
+        -:   36:
+        -:   37:    // Step 3: Pick the smallest edge and check if it forms a cycle
+        6:   38:    for (const auto& edge : edgeList) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 100%
+branch  6 taken 0% (fallthrough)
+        6:   39:        if (e >= V - 1) break;  // Stop if MST has V-1 edges
+branch  0 taken 33% (fallthrough)
+branch  1 taken 67%
+        -:   40:
+        4:   41:        int u = edge[0];
+call    0 returned 100%
+        4:   42:        int v = edge[1];
+call    0 returned 100%
+        4:   43:        int weight = edge[2];
+call    0 returned 100%
+        -:   44:
+        4:   45:        int setU = MSTInfo::find(parent, u);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        4:   46:        int setV = MSTInfo::find(parent, v);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   47:
+        -:   48:        // If including this edge doesn't cause a cycle
+        4:   49:        if (setU != setV) {
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        8:   50:            result.push_back({u, v, weight});
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 never executed
+        4:   51:            e++;
+        4:   52:            MSTInfo::Union(parent, rank, setU, setV);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   53:        }
+        -:   54:    }
+        -:   55:
+        -:   56:    // Convert result to adjacency list format for return
+        2:   57:    std::vector<std::vector<std::pair<int, int>>> mstAdjList(V);  // No need for static
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   58:
+        6:   59:    for (const auto& edge : result) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 67%
+branch  6 taken 33% (fallthrough)
+        4:   60:        int u = edge[0];
+call    0 returned 100%
+        4:   61:        int v = edge[1];
+call    0 returned 100%
+        4:   62:        int weight = edge[2];
+call    0 returned 100%
+        4:   63:        mstAdjList[u].emplace_back(v, weight);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        4:   64:        mstAdjList[v].emplace_back(u, weight);  // Since the graph is undirected
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:   65:    }
+        4:   66:    return mstAdjList;  // Return by value, modern C++ will optimize this
+        2:   67:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed
+call    8 never executed

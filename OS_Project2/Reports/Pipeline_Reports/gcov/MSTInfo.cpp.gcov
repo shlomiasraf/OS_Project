@@ -1,0 +1,263 @@
+        -:    0:Source:MSTInfo.cpp
+        -:    1:#include "MSTInfo.hpp"
+        -:    2:
+function _ZN7MSTInfo20calculateTotalWeightERKSt6vectorIS0_ISt4pairIiiESaIS2_EESaIS4_EEi called 4 returned 100% blocks executed 87%
+        4:    3:double MSTInfo::calculateTotalWeight(const std::vector<std::vector<std::pair<int, int>>> &adj, int V)
+        -:    4:{
+        4:    5: int totalWeight = 0;
+        4:    6:    std::vector<std::vector<std::pair<int, int>>> mstAdjList(V);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:    7:    // Iterate through each vertex and its adjacent vertices
+       16:    8:    for (int u = 0; u < V; ++u) 
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+        -:    9:    {
+       28:   10:        for (const auto& edge : adj[u]) 
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 100%
+branch  6 taken 57%
+branch  7 taken 43% (fallthrough)
+        -:   11:        {
+       16:   12:            int v = edge.first;  // Adjacent vertex
+       16:   13:            int weight = edge.second;  // Weight of the edge
+        -:   14:            // Ensure the edge is not counted twice by checking if v > u (only process each edge once)
+       16:   15:            if (v > u) {
+branch  0 taken 50% (fallthrough)
+branch  1 taken 50%
+        8:   16:                totalWeight += weight;
+        -:   17:        }
+        -:   18:      }
+        -:   19:    }
+        4:   20:    return totalWeight;  // Return the total weight of the MST}
+        4:   21:}
+call    0 returned 100%
+        -:   22:
+function _ZN7MSTInfo25calculateShortestDistanceERKSt6vectorIS0_ISt4pairIiiESaIS2_EESaIS4_EEi called 4 returned 100% blocks executed 100%
+        4:   23:double MSTInfo::calculateShortestDistance(const std::vector<std::vector<std::pair<int, int>>> &adj, int V)
+        -:   24:    {
+        4:   25:    int shortestDist = INT_MAX;
+       16:   26:    for (int u = 0; u < V; ++u) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+       28:   27:        for (const auto& [neighbor, weight] : adj[u]) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 100%
+call    6 returned 100%
+call    7 returned 100%
+branch  8 taken 57%
+branch  9 taken 43% (fallthrough)
+       16:   28:            if (weight < shortestDist && u != neighbor) {
+branch  0 taken 25% (fallthrough)
+branch  1 taken 75%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+        4:   29:                shortestDist = weight;
+        -:   30:            }
+        -:   31:        }
+        -:   32:    }
+        -:   33:
+        4:   34:    return shortestDist;
+        -:   35:    }
+function _ZN7MSTInfo19findLongestDistanceERKSt6vectorIS0_ISt4pairIiiESaIS2_EESaIS4_EEi called 4 returned 100% blocks executed 71%
+        4:   36:int MSTInfo::findLongestDistance(const std::vector<std::vector<std::pair<int, int>>> &adj, int V)
+        -:   37:    {
+        4:   38:       std::vector<bool> visited(V, false);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        -:   39:
+        -:   40:    // Perform the first DFS from an arbitrary node (let's pick node 0)
+        4:   41:    auto [farthestNode, firstMaxDist] = dfs(0, adj, visited);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+        -:   42:
+        -:   43:    // Reset visited array for the second DFS
+        4:   44:    std::fill(visited.begin(), visited.end(), false);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        -:   45:
+        -:   46:    // Perform the second DFS from the farthest node found in the first DFS
+        4:   47:    auto [ignored, maxDistance] = dfs(farthestNode, adj, visited);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+        -:   48:
+        -:   49:    // The maximum distance found is the diameter of the MST
+        4:   50:    return maxDistance;
+        4:   51:}
+call    0 returned 100%
+call    1 never executed
+        -:   52:
+function _ZN7MSTInfo24calculateAverageDistanceEdi called 4 returned 100% blocks executed 75%
+        4:   53:double MSTInfo::calculateAverageDistance(double totalweight, int V)
+        -:   54:{
+        4:   55:    if(V>0){
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        4:   56:        return totalweight/V;
+        -:   57:    }
+    #####:   58:    else return -1;
+        -:   59:}
+        -:   60:
+        -:   61:// Utility function to perform DFS and return the farthest distance from the given node
+function _ZN7MSTInfo3dfsEiRKSt6vectorIS0_ISt4pairIiiESaIS2_EESaIS4_EERS0_IbSaIbEE called 8 returned 100% blocks executed 78%
+        8:   62:std::pair<int, int> MSTInfo::dfs(int node, const std::vector<std::vector<std::pair<int, int>>> &adj, std::vector<bool> &visited)
+        -:   63:{
+        8:   64:    std::stack<std::pair<int, int>> stack; // {node, distance}
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        8:   65:    stack.push({node, 0});
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        8:   66:    visited[node] = true;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        8:   67:    int farthestNode = node;
+        8:   68:    int maxDistance = 0;
+        -:   69:
+       32:   70:    while (!stack.empty()) {
+call    0 returned 100%
+branch  1 taken 75%
+branch  2 taken 25% (fallthrough)
+       24:   71:        auto [currentNode, currentDist] = stack.top();
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+       24:   72:        stack.pop();
+call    0 returned 100%
+        -:   73:
+       24:   74:        if (currentDist > maxDistance) {
+branch  0 taken 67% (fallthrough)
+branch  1 taken 33%
+       16:   75:            maxDistance = currentDist;
+       16:   76:            farthestNode = currentNode;
+        -:   77:        }
+        -:   78:
+       56:   79:        for (const auto& [neighbor, weight] : adj[currentNode]) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+call    5 returned 100%
+call    6 returned 100%
+call    7 returned 100%
+branch  8 taken 57%
+branch  9 taken 43% (fallthrough)
+       32:   80:            if (!visited[neighbor]) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 50% (fallthrough)
+branch  5 taken 50%
+       16:   81:                visited[neighbor] = true;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+       16:   82:                stack.push({neighbor, currentDist + weight});
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:   83:            }
+        -:   84:        }
+        -:   85:    }
+       16:   86:    return {farthestNode, maxDistance};
+call    0 returned 100%
+        8:   87:}
+call    0 returned 100%
+call    1 never executed
+        -:   88:
+        -:   89:// Utility function to find the parent of a node
+function _ZN7MSTInfo4findERSt6vectorIiSaIiEEi called 18 returned 100% blocks executed 100%
+       18:   90:int MSTInfo::find(std::vector<int>& parent, int i) {
+       18:   91:    if (parent[i] == i)
+call    0 returned 100%
+branch  1 taken 89% (fallthrough)
+branch  2 taken 11%
+       16:   92:        return i;
+        2:   93:    return parent[i] = find(parent, parent[i]);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:   94:}
+        -:   95:
+        -:   96:// Function to perform union of two sets (by rank)
+function _ZN7MSTInfo5UnionERSt6vectorIiSaIiEES3_ii called 4 returned 100% blocks executed 100%
+        4:   97:void MSTInfo::Union(std::vector<int>& parent, std::vector<int>& rank, int x, int y) {
+        4:   98:    int rootX = find(parent, x);
+call    0 returned 100%
+        4:   99:    int rootY = find(parent, y);
+call    0 returned 100%
+        -:  100:
+        4:  101:    if (rank[rootX] < rank[rootY]) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 25% (fallthrough)
+branch  3 taken 75%
+        1:  102:        parent[rootX] = rootY;
+call    0 returned 100%
+        3:  103:    } else if (rank[rootX] > rank[rootY]) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 33% (fallthrough)
+branch  3 taken 67%
+        1:  104:        parent[rootY] = rootX;
+call    0 returned 100%
+        -:  105:    } else {
+        2:  106:        parent[rootY] = rootX;
+call    0 returned 100%
+        2:  107:        rank[rootX]++;
+call    0 returned 100%
+        -:  108:    }
+        4:  109:}
+        -:  110:
+function _ZN7MSTInfo6minKeyERKSt6vectorIiSaIiEERKS0_IbSaIbEEi called 4 returned 100% blocks executed 100%
+        4:  111:int MSTInfo::minKey(const std::vector<int>& key, const std::vector<bool>& mstSet, int V) {
+        4:  112:    int min = INF, min_index = -1;
+        -:  113:
+       16:  114:    for (int v = 0; v < V; v++) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+       12:  115:        if (!mstSet[v] && key[v] < min) {
+call    0 returned 100%
+branch  1 taken 83% (fallthrough)
+branch  2 taken 17%
+call    3 returned 100%
+branch  4 taken 50% (fallthrough)
+branch  5 taken 50%
+branch  6 taken 42% (fallthrough)
+branch  7 taken 58%
+        5:  116:            min = key[v];
+call    0 returned 100%
+        5:  117:            min_index = v;
+        -:  118:        }
+        -:  119:    }
+        4:  120:    return min_index;
+        -:  121:}

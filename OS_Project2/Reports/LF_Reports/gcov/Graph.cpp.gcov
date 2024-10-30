@@ -1,0 +1,79 @@
+        -:    0:Source:Graph.cpp
+        -:    1:#include "Graph.hpp"
+        -:    2:#include <sstream>  // for std::stringstream
+        -:    3:
+        -:    4:// Create a new graph with V vertices
+function _ZN5GraphC2Eii called 1 returned 100% blocks executed 55%
+        2:    5:Graph::Graph(int V, int edges) : V(V), edges(edges), adjList(V, std::vector<int>(V, 0)) {}
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 returned 100%
+call    9 never executed
+        -:    6:
+function _ZN5GraphC2Ev called 1 returned 100% blocks executed 100%
+        1:    7:Graph::Graph(){}
+call    0 returned 100%
+        -:    8:
+function _ZN5Graph6resizeEi called 0 returned 0% blocks executed 0%
+    #####:    9:void Graph::resize(int size)
+        -:   10:{
+    #####:   11:    adjList.resize(size, std::vector<int>(size, 0));  
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+call    7 never executed
+call    8 never executed
+    #####:   12:}
+        -:   13:// Add an edge to the graph
+function _ZN5Graph7addEdgeEiii called 4 returned 100% blocks executed 92%
+        4:   14:void Graph::addEdge(int src, int dest, int weight) 
+        -:   15:{
+       4*:   16:    if(adjList[src][dest] == 0 && weight > 0)
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0%
+        -:   17:    {
+        4:   18:        edges++;
+        -:   19:    }
+        4:   20:    adjList[src][dest] = weight;
+call    0 returned 100%
+call    1 returned 100%
+        4:   21:    adjList[dest][src] = weight;  // For undirected graph
+call    0 returned 100%
+call    1 returned 100%
+        4:   22:}
+        -:   23:// Remove an edge from the graph
+function _ZN5Graph10removeEdgeEii called 1 returned 100% blocks executed 100%
+        1:   24:void Graph::removeEdge(int src, int dest) 
+        -:   25:{
+        1:   26:    if(adjList[src][dest] > 0)
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+        -:   27:    {
+        1:   28:        edges--;
+        -:   29:    }
+        -:   30:    // Set the edge weights between src and dest to 0
+        1:   31:    adjList[src][dest] = 0;
+call    0 returned 100%
+call    1 returned 100%
+        1:   32:    adjList[dest][src] = 0;  // For undirected graph
+call    0 returned 100%
+call    1 returned 100%
+        1:   33:}

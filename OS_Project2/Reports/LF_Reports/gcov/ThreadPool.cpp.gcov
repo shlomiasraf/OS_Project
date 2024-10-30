@@ -1,0 +1,196 @@
+        -:    0:Source:ThreadPool.cpp
+        -:    1:#include "ThreadPool.hpp"
+        -:    2:#include <iostream>
+        -:    3:#include <functional>
+        -:    4:
+function _ZN10ThreadPoolC2Em called 1 returned 100% blocks executed 56%
+        1:    5:ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+call    4 returned 100%
+call    5 returned 100%
+call    6 returned 100%
+call    7 returned 100%
+        1:    6:    initializeWorkers(numThreads);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:    7:}
+call    0 never executed
+call    1 never executed
+call    2 never executed
+call    3 never executed
+        -:    8:
+function _ZN10ThreadPool17initializeWorkersEm called 1 returned 100% blocks executed 100%
+        1:    9:void ThreadPool::initializeWorkers(size_t numThreads) {
+       11:   10:    for (size_t i = 0; i < numThreads; ++i) {
+branch  0 taken 91%
+branch  1 taken 9% (fallthrough)
+function _ZZN10ThreadPool17initializeWorkersEmENKUlvE_clEv called 10 returned 100% blocks executed 100%
+       20:   11:        workers.emplace_back([this, i] { workerThread(i); });
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        -:   12:    }
+        1:   13:}
+        -:   14:
+function _ZN10ThreadPool12workerThreadEm called 10 returned 100% blocks executed 89%
+       10:   15:void ThreadPool::workerThread(size_t i) {
+        -:   16:    while (true) {
+       12:   17:        std::function<void()> task;
+call    0 returned 100%
+        -:   18:
+        -:   19:        {
+       12:   20:            std::unique_lock<std::mutex> lock(queueMutex);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+function _ZZN10ThreadPool12workerThreadEmENKUlvE_clEv called 26 returned 100% blocks executed 100%
+       12:   21:            condition.wait(lock, [this] {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+       26:   22:                return stop || !tasks.empty();
+call    0 returned 100%
+branch  1 taken 62% (fallthrough)
+branch  2 taken 38%
+call    3 returned 100%
+branch  4 taken 12% (fallthrough)
+branch  5 taken 88%
+        -:   23:            });
+        -:   24:
+       22:   25:            if (stop && tasks.empty()) return; 
+call    0 returned 100%
+branch  1 taken 83% (fallthrough)
+branch  2 taken 17%
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+branch  6 taken 83% (fallthrough)
+branch  7 taken 17%
+        -:   26:
+        2:   27:                if (!tasks.empty()) {
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0%
+        2:   28:                    task = std::move(tasks.front());
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        2:   29:                    tasks.pop();
+call    0 returned 100%
+        -:   30:                 // pass leadership
+        2:   31:                   condition.notify_one();
+call    0 returned 100%
+        -:   32:                
+        -:   33:            } 
+       12:   34:        }
+call    0 returned 100%
+branch  1 taken 17% (fallthrough)
+branch  2 taken 83%
+call    3 never executed
+        -:   35:        // Process the task outside of the lock
+        2:   36:        if (task) {
+call    0 returned 100%
+branch  1 taken 100%
+branch  2 taken 0%
+        2:   37:            std::cout << "Leader Index: " << i << 
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+        -:   38:                ", Thread ID: " << std::this_thread::get_id() 
+        2:   39:                << " is executing task." << std::endl;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 100% (fallthrough)
+branch  9 taken 0% (throw)
+call   10 returned 100%
+branch 11 taken 100% (fallthrough)
+branch 12 taken 0% (throw)
+        2:   40:                task(); // Execute the task
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   41:        }
+       14:   42:    }
+call    0 returned 100%
+branch  1 taken 17% (fallthrough)
+branch  2 taken 83%
+call    3 never executed
+        -:   43:}
+        -:   44:
+        -:   45:// Destructor for automatic shutdown
+function _ZN10ThreadPoolD2Ev called 1 returned 100% blocks executed 100%
+        1:   46:ThreadPool::~ThreadPool() {
+        1:   47:    shutdown();
+call    0 returned 100%
+        1:   48:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+        -:   49:
+function _ZN10ThreadPool8shutdownEv called 2 returned 100% blocks executed 94%
+        2:   50:void ThreadPool::shutdown() {
+        -:   51:    {
+        2:   52:        std::unique_lock<std::mutex> lock(queueMutex);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        2:   53:        stop = true; 
+call    0 returned 100%
+        2:   54:        condition.notify_all(); // Wake up all threads to stop
+call    0 returned 100%
+        2:   55:    }
+call    0 returned 100%
+        -:   56:    // Join all threads after stopping the task queue
+       22:   57:    for (std::thread &worker : workers) {
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 returned 100%
+branch  5 taken 91%
+branch  6 taken 9% (fallthrough)
+       20:   58:        if (worker.joinable()) {
+call    0 returned 100%
+branch  1 taken 50% (fallthrough)
+branch  2 taken 50%
+       10:   59:            worker.join();
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        -:   60:        }
+        -:   61:    }
+        2:   62:}
+        -:   63:
+function _ZN10ThreadPool7enqueueESt8functionIFvvEE called 2 returned 100% blocks executed 78%
+        2:   64:void ThreadPool::enqueue(std::function<void()> task) {
+        -:   65:    {
+        2:   66:        std::unique_lock<std::mutex> lock(queueMutex);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        2:   67:        tasks.emplace(std::move(task)); // Add the task to the queue    
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        2:   68:       condition.notify_one(); // Notify one worker thread to wake up
+call    0 returned 100%
+        2:   69:    }
+call    0 returned 100%
+call    1 never executed
+        2:   70:}

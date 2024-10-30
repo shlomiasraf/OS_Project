@@ -1,0 +1,39 @@
+        -:    0:Source:MSTAlgo.hpp
+        -:    1:#ifndef MSTALGO_H
+        -:    2:#define MSTALGO_H
+        -:    3:
+        -:    4:#include "Graph.hpp"
+        -:    5:#include "MSTInfo.hpp"
+        -:    6:#include <vector>
+        -:    7:#include <utility>
+        -:    8:
+        -:    9:class MSTAlgo {
+        -:   10:public:
+function _ZN7MSTAlgoC2Ev called 4 returned 100% blocks executed 100%
+        4:   11:    MSTAlgo() = default;
+       4*:   12:    virtual ~MSTAlgo() = default;
+------------------
+_ZN7MSTAlgoD0Ev:
+function _ZN7MSTAlgoD0Ev called 0 returned 0% blocks executed 0%
+    #####:   12:    virtual ~MSTAlgo() = default;
+call    0 never executed
+call    1 never executed
+------------------
+_ZN7MSTAlgoD2Ev:
+function _ZN7MSTAlgoD2Ev called 4 returned 100% blocks executed 100%
+        4:   12:    virtual ~MSTAlgo() = default;
+------------------
+_ZN7MSTAlgoD0Ev:
+function _ZN7MSTAlgoD0Ev called 0 returned 0% blocks executed 0%
+    #####:   12:    virtual ~MSTAlgo() = default;
+call    0 never executed
+call    1 never executed
+------------------
+_ZN7MSTAlgoD2Ev:
+function _ZN7MSTAlgoD2Ev called 0 returned 0% blocks executed 0%
+    #####:   12:    virtual ~MSTAlgo() = default;
+------------------
+        -:   13:    virtual std::vector<std::vector<std::pair<int, int>>> FindMST(Graph &graph) = 0;
+        -:   14:};
+        -:   15:
+        -:   16:#endif // MSTALGO_H

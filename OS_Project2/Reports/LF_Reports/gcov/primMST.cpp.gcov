@@ -1,0 +1,141 @@
+        -:    0:Source:primMST.cpp
+        -:    1:
+        -:    2:#include "primMST.hpp"
+        -:    3:
+        -:    4:// Prim's algorithm for constructing the MST
+function _ZN7PrimMST7FindMSTER5Graph called 1 returned 100% blocks executed 64%
+        1:    5:std::vector<std::vector<std::pair<int, int>>> PrimMST::FindMST(Graph &graph) 
+        -:    6:{
+        1:    7:    int V = graph.V;
+        -:    8:    
+        1:    9:    if (V == 0) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:   10:        std::cerr << "Error: Graph is empty!" << std::endl;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+    #####:   11:        static std::vector<std::vector<std::pair<int, int>>> emptyMST;
+branch  0 never executed (fallthrough)
+branch  1 never executed
+call    2 never executed
+branch  3 never executed (fallthrough)
+branch  4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed
+    #####:   12:        return emptyMST;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   13:    }
+        -:   14:
+        2:   15:    std::vector<int> parent(V);  // Array to store the constructed MST
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        1:   16:    std::vector<int> key(V, INF); // Key values used to pick minimum weight edge
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        1:   17:    std::vector<bool> mstSet(V, false); // To represent the set of vertices included in MST
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        1:   18:    key[0] = 0; // Start with the first vertex
+call    0 returned 100%
+        1:   19:    parent[0] = -1; // The first node is always the root of the MST
+call    0 returned 100%
+        -:   20:
+        3:   21:    for (int count = 0; count < V - 1; count++) 
+branch  0 taken 67%
+branch  1 taken 33% (fallthrough)
+        -:   22:    {
+        2:   23:        int u = MSTInfo::minKey(key, mstSet, V); // Pick the minimum key vertex
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        2:   24:        mstSet[u] = true;
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+        -:   25:
+        -:   26:        // Update key and parent for adjacent vertices
+        8:   27:        for (int v = 0; v < V; v++) {
+branch  0 taken 75%
+branch  1 taken 25% (fallthrough)
+        -:   28:            // Check if there is an edge between u and v in the original graph, 
+        -:   29:            // if v is not in the MST, and if the weight is less than the current key value for v
+        6:   30:            if (graph.adjList[u][v] && !mstSet[v] && graph.adjList[u][v] < key[v]) 
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 67% (fallthrough)
+branch  3 taken 33%
+call    4 returned 100%
+branch  5 taken 100% (fallthrough)
+branch  6 taken 0% (throw)
+call    7 returned 100%
+branch  8 taken 75% (fallthrough)
+branch  9 taken 25%
+call   10 returned 100%
+call   11 returned 100%
+call   12 returned 100%
+branch 13 taken 100% (fallthrough)
+branch 14 taken 0%
+branch 15 taken 50% (fallthrough)
+branch 16 taken 50%
+        -:   31:            {
+        3:   32:                parent[v] = u; // Update the parent of v to u
+call    0 returned 100%
+        3:   33:                key[v] = graph.adjList[u][v]; // Update the key to reflect the new minimum weight
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+        -:   34:            }
+        -:   35:        }
+        -:   36:    }
+        -:   37:
+        1:   38:    std::vector<std::vector<std::pair<int, int>>> mstAdjList(V);
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        3:   39:    for (int i = 1; i < V; i++) {
+branch  0 taken 67%
+branch  1 taken 33% (fallthrough)
+        2:   40:        int u = parent[i];
+call    0 returned 100%
+        2:   41:        if (u != -1) { // Ensure a valid parent before adding to the MST
+branch  0 taken 100% (fallthrough)
+branch  1 taken 0%
+        2:   42:            int weight = graph.adjList[u][i];
+call    0 returned 100%
+call    1 returned 100%
+        2:   43:            mstAdjList[u].emplace_back(i, weight);
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        2:   44:            mstAdjList[i].emplace_back(u, weight);  // Since the graph is undirected
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0% (throw)
+        -:   45:        }
+        -:   46:    }
+        1:   47:    return mstAdjList;
+call    0 returned 100%
+        1:   48:}
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+call    3 returned 100%
+call    4 never executed
+call    5 never executed
+call    6 never executed
+call    7 never executed

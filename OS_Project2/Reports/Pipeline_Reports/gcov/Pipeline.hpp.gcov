@@ -1,0 +1,154 @@
+        -:    0:Source:Pipeline.hpp
+        -:    1:#include "ActiveObject.hpp"
+        -:    2:#include <atomic>
+        -:    3:#include <future>
+        -:    4:#include "MSTInfo.hpp"
+        -:    5:class Pipeline{
+        -:    6:    
+        -:    7:
+        -:    8: struct MSTResult {
+        -:    9:    std::vector<std::vector<std::pair<int, int>>> mst;  // The adjacency list representation of the MST
+        -:   10:    double totalWeight;        // The total weight of the MST
+        -:   11:    double shortestDistance;   // Shortest distance between any two nodes in the MST
+        -:   12:    double averageDistance;    // Average distance between all nodes in the MST
+        -:   13:    double longestDistance;
+        -:   14:    // Add more fields as necessary for other metrics
+        -:   15:
+        -:   16:    // Constructor for easy initialization
+function _ZN8Pipeline9MSTResultC2ERKSt6vectorIS1_ISt4pairIiiESaIS3_EESaIS5_EEddd called 4 returned 100% blocks executed 100%
+        4:   17:    MSTResult(const std::vector<std::vector<std::pair<int, int>>>& mstData, double totalW, double shortestDist, double avgDist)
+        4:   18:        : mst(mstData), totalWeight(totalW), shortestDistance(shortestDist), averageDistance(avgDist) {}
+call    0 returned 100%
+        -:   19:
+        -:   20:    // You can also add functions to calculate certain metrics if needed
+function _ZNK8Pipeline9MSTResult14sendMSTDetailsEi called 4 returned 100% blocks executed 47%
+        4:   21:    void sendMSTDetails(int clientfd) const {
+        4:   22:    std::string message;
+call    0 returned 100%
+        -:   23:    
+        -:   24:    // Construct the message with MST details
+        4:   25:    message += "MST Details:\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+        4:   26:    message += "Total Weight: " + std::to_string(totalWeight) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        4:   27:    message += "Longest Distance: " + std::to_string(longestDistance) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        4:   28:    message += "Shortest Distance: " + std::to_string(shortestDistance) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        4:   29:    message += "Average Distance: " + std::to_string(averageDistance) + "\n";
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+branch  7 taken 100% (fallthrough)
+branch  8 taken 0% (throw)
+call    9 returned 100%
+branch 10 taken 100% (fallthrough)
+branch 11 taken 0% (throw)
+call   12 returned 100%
+call   13 returned 100%
+call   14 returned 100%
+call   15 never executed
+call   16 never executed
+call   17 never executed
+        -:   30:
+        -:   31:    // Send the message over the socket
+        4:   32:    ssize_t bytes_sent = send(clientfd, message.c_str(), message.size(), 0);
+call    0 returned 100%
+call    1 returned 100%
+call    2 returned 100%
+branch  3 taken 100% (fallthrough)
+branch  4 taken 0% (throw)
+        4:   33:    if (bytes_sent == -1) {
+branch  0 taken 0% (fallthrough)
+branch  1 taken 100%
+    #####:   34:        std::cerr << "Error sending MST details to client " << clientfd << std::endl;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+        -:   35:         }
+        4:   36:     }
+call    0 returned 100%
+call    1 never executed
+        -:   37:    };
+        -:   38:    
+        -:   39:    std::vector<std::unique_ptr<ActiveObject>> executors; // Use smart pointers
+        -:   40:    
+        -:   41:    std::mutex mtx1, mtx2, mtx3, mtx4, mtx5,deletetion,coutMutex;
+        -:   42:    std::condition_variable cv1, cv2, cv3, cv4, cv5;
+        -:   43:    std::atomic<int> completedTasks{0};
+        -:   44:    Pipeline(); //  private Constructor
+        -:   45:    static Pipeline * instance;
+        -:   46:    void threadSafePrint(const std::string& message);
+        -:   47:    static std::mutex creation;
+        -:   48:    
+        -:   49:    public:
+        -:   50:    static Pipeline& getInstance();
+        -:   51:    Pipeline(const Pipeline&) = delete;
+        -:   52:    Pipeline& operator=(const Pipeline&) = delete;
+        -:   53:    ~Pipeline();
+        -:   54:    void cleanup();
+        -:   55:    void run(Graph& graph,int clientfd,Command type);    
+        -:   56:};

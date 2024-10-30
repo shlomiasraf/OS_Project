@@ -1,0 +1,23 @@
+==25629== Callgrind, a call-graph generating cache profiler
+==25629== Copyright (C) 2002-2017, and GNU GPL'd, by Josef Weidendorfer et al.
+==25629== Using Valgrind-3.22.0 and LibVEX; rerun with -h for copyright info
+==25629== Command: ./pipeline_app
+==25629== 
+==25629== For interactive control, run 'callgrind_control -h'.
+MST Calculation..
+Finish task 2
+Finish task 3
+Finish task 4
+Finish task 5
+Finish task 6
+MST Calculation..
+Finish task 2
+Finish task 3
+Finish task 4
+Finish task 5
+Finish task 6
+==25629== 
+==25629== Events    : Ir
+==25629== Collected : 2251812
+==25629== 
+==25629== I   refs:      2,251,812

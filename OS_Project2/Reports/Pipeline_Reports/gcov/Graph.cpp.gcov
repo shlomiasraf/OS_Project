@@ -1,0 +1,194 @@
+        -:    0:Source:Graph.cpp
+        -:    1:#include "Graph.hpp"
+        -:    2:#include <sstream>  // for std::stringstream
+        -:    3:
+        -:    4:// Create a new graph with V vertices
+function _ZN5GraphC2Eii called 2 returned 100% blocks executed 55%
+        4:    5:Graph::Graph(int V, int edges) : V(V), edges(edges), adjList(V, std::vector<int>(V, 0)) {}
+call    0 returned 100%
+branch  1 taken 100% (fallthrough)
+branch  2 taken 0% (throw)
+call    3 returned 100%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0% (throw)
+call    6 returned 100%
+call    7 returned 100%
+call    8 returned 100%
+call    9 never executed
+        -:    6:
+function _ZN5GraphC2Ev called 2 returned 100% blocks executed 100%
+        2:    7:Graph::Graph(){}
+call    0 returned 100%
+        -:    8:
+function _ZN5Graph6resizeEi called 0 returned 0% blocks executed 0%
+    #####:    9:void Graph::resize(int size)
+        -:   10:{
+    #####:   11:    adjList.resize(size, std::vector<int>(size, 0));  
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+call    7 never executed
+call    8 never executed
+    #####:   12:}
+        -:   13:// Add an edge to the graph
+function _ZN5Graph7addEdgeEiii called 8 returned 100% blocks executed 92%
+        8:   14:void Graph::addEdge(int src, int dest, int weight) 
+        -:   15:{
+       8*:   16:    if(adjList[src][dest] == 0 && weight > 0)
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+branch  4 taken 100% (fallthrough)
+branch  5 taken 0%
+branch  6 taken 100% (fallthrough)
+branch  7 taken 0%
+        -:   17:    {
+        8:   18:        edges++;
+        -:   19:    }
+        8:   20:    adjList[src][dest] = weight;
+call    0 returned 100%
+call    1 returned 100%
+        8:   21:    adjList[dest][src] = weight;  // For undirected graph
+call    0 returned 100%
+call    1 returned 100%
+        8:   22:}
+        -:   23:// Remove an edge from the graph
+function _ZN5Graph10removeEdgeEii called 2 returned 100% blocks executed 100%
+        2:   24:void Graph::removeEdge(int src, int dest) 
+        -:   25:{
+        2:   26:    if(adjList[src][dest] > 0)
+call    0 returned 100%
+call    1 returned 100%
+branch  2 taken 100% (fallthrough)
+branch  3 taken 0%
+        -:   27:    {
+        2:   28:        edges--;
+        -:   29:    }
+        -:   30:    // Set the edge weights between src and dest to 0
+        2:   31:    adjList[src][dest] = 0;
+call    0 returned 100%
+call    1 returned 100%
+        2:   32:    adjList[dest][src] = 0;  // For undirected graph
+call    0 returned 100%
+call    1 returned 100%
+        2:   33:}
+        -:   34:// Serialize the graph data into a string
+function _ZNK5Graph9serializeB5cxx11Ev called 0 returned 0% blocks executed 0%
+    #####:   35:std::string Graph::serialize() const 
+        -:   36:{
+    #####:   37:    std::stringstream ss;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   38:    ss << V << " " << edges << "\n";
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+call    9 never executed
+branch 10 never executed (fallthrough)
+branch 11 never executed (throw)
+    #####:   39:    for (int i = 0; i < V; ++i) 
+branch  0 never executed
+branch  1 never executed (fallthrough)
+        -:   40:    {
+    #####:   41:        for (int j = 0; j < V; ++j) 
+branch  0 never executed
+branch  1 never executed (fallthrough)
+        -:   42:        {
+    #####:   43:            if (adjList[i][j] != 0) 
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed
+        -:   44:            {
+    #####:   45:                ss << i+1 << " " << j+1 << " " << adjList[i][j] << "\n";  // Add each edge
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+call    9 never executed
+branch 10 never executed (fallthrough)
+branch 11 never executed (throw)
+call   12 never executed
+call   13 never executed
+call   14 never executed
+branch 15 never executed (fallthrough)
+branch 16 never executed (throw)
+call   17 never executed
+branch 18 never executed (fallthrough)
+branch 19 never executed (throw)
+        -:   46:            }
+        -:   47:        }
+        -:   48:    }
+    #####:   49:    return ss.str();
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+    #####:   50:}
+call    0 never executed
+call    1 never executed
+        -:   51:
+        -:   52:// Deserialize a graph from a string
+function _ZN5Graph11deserializeERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE called 0 returned 0% blocks executed 0%
+    #####:   53:Graph Graph::deserialize(const std::string& data) 
+        -:   54:{
+    #####:   55:    std::stringstream ss(data);
+call    0 never executed
+call    1 never executed
+branch  2 never executed (fallthrough)
+branch  3 never executed (throw)
+        -:   56:    int V, edges;
+    #####:   57:    ss >> V >> edges;
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+    #####:   58:    Graph graph(V, edges);
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+        -:   59:
+        -:   60:    int src, dest, weight;
+    #####:   61:    while (ss >> src >> dest >> weight) 
+call    0 never executed
+branch  1 never executed (fallthrough)
+branch  2 never executed (throw)
+call    3 never executed
+branch  4 never executed (fallthrough)
+branch  5 never executed (throw)
+call    6 never executed
+branch  7 never executed (fallthrough)
+branch  8 never executed (throw)
+call    9 never executed
+branch 10 never executed (fallthrough)
+branch 11 never executed (throw)
+branch 12 never executed
+branch 13 never executed (fallthrough)
+        -:   62:    {
+    #####:   63:        graph.addEdge(src-1, dest-1, weight);
+call    0 never executed
+        -:   64:    }
+        -:   65:
+    #####:   66:    return graph;
+    #####:   67:}
+call    0 never executed
+call    1 never executed
+call    2 never executed
