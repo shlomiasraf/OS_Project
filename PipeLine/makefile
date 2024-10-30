@@ -14,7 +14,7 @@ HEADERS = ActiveObject.hpp Graph.hpp Pipeline.hpp \
           CommandExecute.hpp kruskalMST.hpp MSTInfo.hpp primMST.hpp
 
 # Output executable
-TARGET = LF_pipeline
+TARGET = pipeline_app
 
 # Default target
 all: $(TARGET)
